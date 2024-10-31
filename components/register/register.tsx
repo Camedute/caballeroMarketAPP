@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
-import { firebaseConfig } from '../constants';
+import { registerUser, handleAuthError } from '../backend/firebase';
 
 const Register = ({ navigation }: any) => {
   const [username, setUsername] = useState('');
@@ -12,49 +9,18 @@ const Register = ({ navigation }: any) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-
-
-  if (getApps().length === 0) {
-    initializeApp(firebaseConfig);
-  }
-
-  const auth = getAuth();
-  const firestore = getFirestore();
-
   const handleRegister = async () => {
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden');
       return;
     }
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, mail, password);
-      const user = userCredential.user;
 
-      const userDocRef = doc(firestore, 'Clientes', user.uid);
-      await setDoc(userDocRef, {
-        correoUsuario: user.email,
-        nombreUsuario: username,
-        uid: user.uid,
-        fechaHoraCreacion: new Date()
-      });
-
+    const result = await registerUser(mail, password, username);
+    if (result.success) {
       Alert.alert('Registro exitoso', `Bienvenido ${username}`);
       navigation.navigate('Home');
-    } catch (error: any) {
-      console.log(error.message);
-      const msjError = error.message;
-
-      if (msjError === "Firebase: Error (auth/email-already-in-use).") {
-        Alert.alert('Error', 'Correo Electrónico en uso');
-      } else if (msjError === "Firebase: Password should be at least 6 characters (auth/weak-password).") {
-        Alert.alert('Error', 'Su contraseña es muy insegura, considere utilizar al menos 6 caracteres');
-      } else if(msjError === "Firebase: Error (auth/invalid-email)."){
-        Alert.alert('Error','Por favor, ingrese un correo válido');
-      } else if(msjError === "Firebase: Error (auth/missing-password)."){
-        Alert.alert('Error','Por favor, ingrese una contraseña');
-      } else {
-        Alert.alert('Error', 'Problemas con la autenticación');
-      }
+    } else {
+      handleAuthError(result.error);
     }
   };
 
@@ -69,28 +35,28 @@ const Register = ({ navigation }: any) => {
           <Text style={styles.title}>Registrarse</Text>
 
           <TextInput
-            placeholder="Nombre de usuario"
+            placeholder="Nombre de usuario😺"
             value={username}
             onChangeText={setUsername}
             style={styles.input}
             autoCapitalize="none"
           />
           <TextInput
-            placeholder="Correo Electrónico"
+            placeholder="Correo Electrónico✉️"
             value={mail}
             onChangeText={setMail}
             style={styles.input}
             autoCapitalize="none"
           />
           <TextInput
-            placeholder="Contraseña"
+            placeholder="Contraseña🙊"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             style={styles.input}
           />
           <TextInput
-            placeholder="Confirmar Contraseña"
+            placeholder="Confirmar Contraseña🙈"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
@@ -98,7 +64,7 @@ const Register = ({ navigation }: any) => {
           />
 
           <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerButtonText}>Registrarse</Text>
+            <Text style={styles.registerButtonText}>Registrarse✍️</Text>
           </TouchableOpacity>
         </View>
       </View>

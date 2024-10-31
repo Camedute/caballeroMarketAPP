@@ -2,22 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { initializeApp, getApps } from 'firebase/app';  // Firebase desde el SDK de JS
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { firebaseConfig } from '../constants';
-// Componente de Login
+import { signInWithEmailAndPassword } from 'firebase/auth';  // Importar solo lo necesario
+import { auth } from '../backend/firebase'; // Importar la configuración de Firebase desde el archivo separado
+
 const Login = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-
-
-  // Inicializar Firebase si aún no ha sido inicializado
-  if (getApps().length === 0) {
-    initializeApp(firebaseConfig);
-  }
-
-  const auth = getAuth();
 
   // Función para manejar el login
   const handleLogin = async () => {
@@ -34,21 +24,23 @@ const Login = ({ navigation }: any) => {
     } catch (error: any) {
       console.log(error.message);
       const errorMsj = error.message;
-      if (errorMsj ===  "Firebase: Error (auth/invalid-email)."){
-        Alert.alert("error","Por favor, ingrese un correo válido");
-      } else if (errorMsj === "Firebase: Error (auth/invalid-credential)."){
-        Alert.alert("error","Credenciales inválidas, por favor, revise sus datos");
-      } else{Alert.alert("error","Ha ocurrido un error.")}
+      if (errorMsj === "Firebase: Error (auth/invalid-email).") {
+        Alert.alert("Error", "Por favor, ingrese un correo válido");
+      } else if (errorMsj === "Firebase: Error (auth/invalid-credential).") {
+        Alert.alert("Error", "Credenciales inválidas, por favor, revise sus datos");
+      } else {
+        Alert.alert("Error", "Ha ocurrido un error.");
+      }
     }
   };
 
   return (
     <LinearGradient colors={['#00c6ff', '#0072ff']} style={styles.gradient}>
       <View style={styles.loginBox}>
-        <Text style={styles.title}>Login</Text>
+        <Text style={styles.title}>Ingresar Sesión</Text>
         
         <TextInput
-          placeholder="Correo electrónico"
+          placeholder="Correo electrónico✉️"
           value={email}
           onChangeText={setEmail}
           style={styles.input}
@@ -56,7 +48,7 @@ const Login = ({ navigation }: any) => {
           keyboardType="email-address"
         />
         <TextInput
-          placeholder="Contraseña"
+          placeholder="Contraseña🙊"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -64,11 +56,15 @@ const Login = ({ navigation }: any) => {
         />
         
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+          <Text style={styles.loginButtonText}>Iniciar Sesión🚪</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('resetPassword')}>
+          <Text style={styles.registerText}>Se te olvidó la contraseña? Recuperala acá🥲</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerText}>¿No tienes cuenta? Regístrate</Text>
+          <Text style={styles.registerText}>¿No tienes cuenta? Regístrate✍️</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>
