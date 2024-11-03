@@ -1,7 +1,7 @@
-// Home.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, ScrollView } from 'react-native';
 import { handleStoresHome } from '../backend/firebase';
+import { Ionicons } from '@expo/vector-icons';
 
 const Home = ({ navigation }: any) => {
   const [cart, setCart] = useState({});
@@ -17,8 +17,23 @@ const Home = ({ navigation }: any) => {
 
   const addToCart = (product: any) => {
     setCart((prevCart) => {
-      const currentCount = prevCart[product.id] || 0;
-      return { ...prevCart, [product.id]: currentCount + 1 };
+      if (prevCart[product.id]) {
+        return {
+          ...prevCart,
+          [product.id]: {
+            ...prevCart[product.id],
+            cantidad: prevCart[product.id].cantidad + 1,
+          },
+        };
+      }
+      return {
+        ...prevCart,
+        [product.id]: {
+          id: product.id,
+          nombreProducto: product.nombreProducto,
+          cantidad: 1,
+        },
+      };
     });
   };
 
@@ -28,57 +43,106 @@ const Home = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
+      {/* Barra de búsqueda */}
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color="#666" />
+        <TextInput style={styles.searchInput} placeholder="Buscar" />
+      </View>
+
       <Text style={styles.title}>Tiendas y Productos</Text>
+
       <FlatList
         data={stores}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.storeItem}>
             <Text style={styles.storeName}>{item.nombreLocal}</Text>
-            <Text style={styles.storeOwner}>Dueño: {item.nombreUsuario}</Text>
 
-            <FlatList
-              data={item.productos}
-              keyExtractor={(product) => product.id}
-              renderItem={({ item: product }) => (
-                <View style={styles.product}>
+            {/* Productos en scroll horizontal */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {item.productos.map((product: any) => (
+                <View key={product.id} style={styles.product}>
                   <Text style={styles.productName}>{product.nombreProducto}</Text>
                   <Text style={styles.productPrice}>${product.precioProducto}</Text>
                   <TouchableOpacity
                     style={styles.addButton}
                     onPress={() => addToCart(product)}
                   >
-                    <Text style={styles.addButtonText}>Añadir al carrito</Text>
+                    <Text style={styles.addButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
-              )}
-              ListEmptyComponent={<Text>No hay productos disponibles</Text>}
-            />
+              ))}
+            </ScrollView>
           </View>
         )}
         ListEmptyComponent={<Text>No hay tiendas disponibles</Text>}
+        contentContainerStyle={stores.length === 0 ? styles.emptyList : null} // Ajuste para centrar la lista vacía
       />
 
-      <TouchableOpacity style={styles.viewCartButton} onPress={viewCart}>
-        <Text style={styles.viewCartButtonText}>Ver carrito</Text>
-      </TouchableOpacity>
+      {/* Barra de navegación inferior */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Ionicons name="home-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+          <Ionicons name="qr-code-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Ionicons name="person-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={viewCart}>
+          <Ionicons name="cart-outline" size={30} color="#333" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, paddingTop: 40, backgroundColor: '#f5f5f5' },
+  searchBar: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  searchInput: {
+    marginLeft: 5,
+    fontSize: 16,
+    flex: 1,
+  },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  storeItem: { backgroundColor: '#eee', padding: 15, marginBottom: 10, borderRadius: 10 },
-  storeName: { fontSize: 18, fontWeight: 'bold' },
-  storeOwner: { fontSize: 16, color: '#666' },
-  product: { backgroundColor: '#fff', padding: 10, marginTop: 10, borderRadius: 8 },
-  productName: { fontSize: 16 },
-  productPrice: { fontSize: 14, color: '#666', marginBottom: 5 },
-  addButton: { backgroundColor: '#0072ff', padding: 8, borderRadius: 5, alignItems: 'center' },
+  storeItem: { padding: 15, marginBottom: 20 },
+  storeName: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  product: {
+    width: 100,
+    backgroundColor: '#fff',
+    padding: 10,
+    marginRight: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  productName: { fontSize: 14, textAlign: 'center' },
+  productPrice: { fontSize: 12, color: '#666', marginVertical: 5 },
+  addButton: { backgroundColor: '#0072ff', padding: 5, borderRadius: 5 },
   addButtonText: { color: '#fff', fontWeight: 'bold' },
-  viewCartButton: { backgroundColor: '#ff6347', padding: 12, borderRadius: 5, marginTop: 20, alignItems: 'center' },
-  viewCartButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#ddd',
+  },
+  emptyList: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default Home;

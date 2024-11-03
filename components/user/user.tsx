@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, Image, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons';
 
-const User = () => {
+const User = ({navigation}: any) => {
+  const [cart, setCart] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     nombreUsuario: '',
     correoUsuario: '',
   });
+
+  const viewCart = () => {
+    navigation.navigate('Cart', { cart });
+  };
 
   const auth = getAuth();
   const firestore = getFirestore();
@@ -88,6 +94,20 @@ const User = () => {
           />
         </View>
       </View>
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Ionicons name="home-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+          <Ionicons name="qr-code-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Ionicons name="person-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={viewCart}>
+          <Ionicons name="cart-outline" size={30} color="#333" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -145,6 +165,14 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     color: '#555',
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#ddd',
   },
 });
 

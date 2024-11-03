@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableOpacity } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -7,12 +7,17 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { firebaseConfig } from '../constants';
+import { Ionicons } from '@expo/vector-icons';
+import Cart from '../cart/cart';
 
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const auth = getAuth(app);
 
-const QRScanner: React.FC = () => {
+
+
+const QRScanner: React.FC = ({navigation}: any) => {
+  const [cart, setCart] = useState({});
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState<boolean>(false);
   const [showCamera, setShowCamera] = useState<boolean>(false);
@@ -25,16 +30,20 @@ const QRScanner: React.FC = () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
     };
-
     askForPermissions();
   }, []);
 
+
+
+  const viewCart = () => {
+    navigation.navigate('Cart', { cart });
+  };
+
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
-    console.log('QR Escaneado:', data); // Log para verificar el QR escaneado
     setScanned(true);
     setShowCamera(false);
     setQrData(data);
-    await confirmOrder(data); // Llamada a la función de confirmación de pedido
+    await confirmOrder(data);
 
     setTimeout(() => {
       setScanned(false);
@@ -47,9 +56,12 @@ const QRScanner: React.FC = () => {
     setScanned(false);
   };
 
+  const handleHideCamera = () => {
+    setShowCamera(false);
+  };
+
   const confirmOrder = async (orderId: string) => {
     const user = auth.currentUser;
-    console.log('Usuario Actual:', user ? user.uid : 'No autenticado'); // Log para verificar el usuario
 
     if (!user) {
       setConfirmMessage('No hay usuario autenticado.');
@@ -60,12 +72,10 @@ const QRScanner: React.FC = () => {
     try {
       const orderRef = doc(firestore, 'Pedidos', orderId);
       const orderDoc = await getDoc(orderRef);
-      
+
       if (orderDoc.exists()) {
         const orderData = orderDoc.data();
-        console.log('Datos del Pedido:', orderData); // Log para verificar los datos del pedido
 
-        // Comprobar si el idCliente coincide
         if (orderData.idCliente === user.uid) {
           await updateDoc(orderRef, { realizado: true });
           setConfirmMessage('Pedido confirmado con éxito.');
@@ -76,7 +86,6 @@ const QRScanner: React.FC = () => {
         setConfirmMessage('El pedido no existe.');
       }
     } catch (error) {
-      console.error('Error al confirmar el pedido:', error);
       setConfirmMessage('Error en la consulta.');
     } finally {
       setModalVisible(true);
@@ -92,10 +101,25 @@ const QRScanner: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={[styles.tab, !showCamera && styles.activeTab]}
+          onPress={() => setShowCamera(false)}
+        >
+          <Text style={styles.tabText}>Mostrar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, showCamera && styles.activeTab]}
+          onPress={handleShowCamera}
+        >
+          <Text style={styles.tabText}>Escanear</Text>
+        </TouchableOpacity>
+      </View>
+
       {!showCamera ? (
-        <View style={styles.buttonContainer}>
-          <Icon name="qrcode-scan" size={50} color="#000" style={styles.icon} />
-          <Button title="Mostrar Cámara" onPress={handleShowCamera} />
+        <View style={styles.qrContainer}>
+          <Icon name="qrcode-scan" size={100} color="#000" />
+          <Text style={styles.qrText}>QR</Text>
         </View>
       ) : (
         <CameraView
@@ -103,10 +127,20 @@ const QRScanner: React.FC = () => {
           style={StyleSheet.absoluteFillObject}
         >
           {scanned && (
-            <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />
+            <Button title="Tap to Scan Again" onPress={() => setScanned(false)} />
           )}
+          <TouchableOpacity style={styles.backButton} onPress={handleHideCamera}>
+            <Text style={styles.backButtonText}>Regresar</Text>
+          </TouchableOpacity>
         </CameraView>
       )}
+
+      {!showCamera && (
+        <TouchableOpacity style={styles.scanButton} onPress={handleShowCamera}>
+          <Text style={styles.scanButtonText}>Escanear</Text>
+        </TouchableOpacity>
+      )}
+
       <Modal isVisible={modalVisible}>
         <View style={styles.modalContent}>
           <Text style={styles.modalText}>Escaneado con éxito</Text>
@@ -114,22 +148,82 @@ const QRScanner: React.FC = () => {
           <Button title="Cerrar" onPress={() => setModalVisible(false)} />
         </View>
       </Modal>
+
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Ionicons name="home-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+          <Ionicons name="qr-code-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Ionicons name="person-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={viewCart}>
+          <Ionicons name="cart-outline" size={30} color="#333" />
+        </TouchableOpacity>
+      </View>
+
     </View>
+    
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
     justifyContent: 'center',
-    paddingHorizontal: 20,
   },
-  buttonContainer: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  tab: {
+    padding: 10,
+    borderRadius: 20,
+    marginHorizontal: 5,
+    backgroundColor: '#ccc',
+  },
+  activeTab: {
+    backgroundColor: '#007AFF',
+  },
+  tabText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  qrContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-  icon: {
-    marginBottom: 10,
+  qrText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  scanButton: {
+    alignSelf: 'center',
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 25,
+    marginTop: 20,
+  },
+  scanButtonText: {
+    color: 'white',
+    fontSize: 18,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 20,
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
   modalContent: {
     backgroundColor: 'white',
@@ -141,6 +235,14 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 18,
     marginBottom: 10,
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#ddd',
   },
 });
 

@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc } from 'firebase/firestore'; // Cambia a addDoc para que Firestore genere el ID
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
-import { Alert } from 'react-native';
 import { firebaseConfig } from '../constants';
 
-const Cart = ({ route, navigation } : any) => {
-  const [tipoPago, setTipoPago] = useState<string>('efectivo');
-  const { cart } = route.params; // Recibe el carrito y el id del cliente desde la ruta
+// Definición de tipos
+type CartItem = {
+  nombre: string;
+  cantidad: number;
+};
 
-  
+type CartProps = {
+  route: {
+    params: {
+      cart: { [productId: string]: CartItem };
+    };
+  };
+  navigation: any;
+};
+
+const Cart = ({ route, navigation }: CartProps) => {
+  const [cartGo, setCartGo] = useState({});
+  const [tipoPago, setTipoPago] = useState<string>('efectivo');
+  const { cart } = route.params;
 
   if (getApps().length === 0) {
     initializeApp(firebaseConfig);
@@ -20,21 +33,29 @@ const Cart = ({ route, navigation } : any) => {
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
+
+  const viewCart = () => {
+    navigation.navigate('Cart', { cartGo });
+  };
   
   const handleCart = async () => {
-    try {
-      const pedidoRef = collection(firestore, 'Pedidos'); // Referencia a la colección 'Pedidos'
-      await addDoc(pedidoRef, {
-        listaPedidos: cart,
-        idCliente: user?.uid,
-        metodoPago: tipoPago,
-        fecha: new Date(),
-        realizado: false
-      });
-      Alert.alert('Pedido enviado correctamente');
-      navigation.navigate('Home');
-    } catch (error: any) {
-      console.log('Error al enviar el pedido:', error.message);
+    if (Object.entries(cart).length <= 0){
+      Alert.alert('Error','No has agregado productos al carrito.');
+    } else {
+      try {
+        const pedidoRef = collection(firestore, 'Pedidos');
+        await addDoc(pedidoRef, {
+          listaPedidos: cart,
+          idCliente: user?.uid,
+          metodoPago: tipoPago,
+          fecha: new Date(),
+          realizado: false
+        });
+        Alert.alert('Pedido enviado correctamente');
+        navigation.navigate('Home');
+      } catch (error: any) {
+        console.log('Error al enviar el pedido:', error.message);
+      }
     }
   };
 
@@ -53,11 +74,11 @@ const Cart = ({ route, navigation } : any) => {
         <FlatList
           data={Object.entries(cart)}
           keyExtractor={([productId]) => productId}
-          contentContainerStyle={styles.productList} // Añadido para controlar el espacio
-          renderItem={({ item: [productId, cantidad] }) => (
+          contentContainerStyle={styles.productList}
+          renderItem={({ item: [productId, product] }) => (
             <View style={styles.productCard}>
-              <Text style={styles.productText}>Producto ID: {productId}</Text>
-              <Text style={styles.productText}>Cantidad: {cantidad}</Text>
+              <Text style={styles.productText}>Producto: {product.nombre}</Text>
+              <Text style={styles.productText}>Cantidad: {product.cantidad}</Text>
             </View>
           )}
         />
@@ -77,6 +98,22 @@ const Cart = ({ route, navigation } : any) => {
       </View>
 
       <Button title="Solicitar Pedido" onPress={handleCart} />
+
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Ionicons name="home-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+          <Ionicons name="qr-code-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Ionicons name="person-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={viewCart}>
+          <Ionicons name="cart-outline" size={30} color="#333" />
+        </TouchableOpacity>
+      </View>
+
     </View>
   );
 };
@@ -93,7 +130,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     backgroundColor: '#f0f0f0',
-    elevation: 2, // Para dar sombra en Android
+    elevation: 2,
   },
   title: {
     fontSize: 24,
@@ -102,7 +139,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   productList: {
-    paddingBottom: 100, // Espacio inferior para evitar que el contenido se superponga con el botón
+    paddingBottom: 100,
   },
   productCard: {
     backgroundColor: '#f0f0f0',
@@ -129,6 +166,14 @@ const styles = StyleSheet.create({
   selectedPayment: {
     backgroundColor: '#007bff',
     color: '#fff',
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#ddd',
   },
 });
 
