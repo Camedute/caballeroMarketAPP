@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  productName: { fontSize: 14, textAlign: 'center' },
+  productName: { fontSize: 13, textAlign: 'center' },
   productPrice: { fontSize: 12, color: '#666', marginVertical: 5 },
   addButton: { backgroundColor: '#0072ff', padding: 5, borderRadius: 5 },
   addButtonText: { color: '#fff', fontWeight: 'bold' },
