@@ -7,6 +7,7 @@ import Register from './components/register/register';
 import Home from './components/home/home';
 import QRScanner from './components/qrscanner/qrscanner';
 import User from './components/user/user';
+import ResetPassword from './components/resetPassword/resetPassword';
 
 const Stack = createStackNavigator();
 
@@ -19,6 +20,7 @@ const App = () => {
         <Stack.Screen name="QRScanner" component={QRScanner} />
         <Stack.Screen name="Profile" component={User} />
         <Stack.Screen name="Cart" component={Cart} />
+        <Stack.Screen name="resetPassword" component={ResetPassword} />
         <Stack.Screen name="Register" component={Register} />
       </Stack.Navigator>
     </NavigationContainer>

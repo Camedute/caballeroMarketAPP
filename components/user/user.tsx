@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TextInput, Button, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ const User = ({navigation}: any) => {
     nombreUsuario: '',
     correoUsuario: '',
   });
+  const [loading, setLoading] = useState(true); // Estado de carga
 
   const viewCart = () => {
     navigation.navigate('Cart', { cart });
@@ -34,6 +35,7 @@ const User = ({navigation}: any) => {
       } else {
         console.log('No se encontraron datos del usuario');
       }
+      setLoading(false); // Cambiar a false cuando los datos sean cargados
     }
   };
 
@@ -63,37 +65,43 @@ const User = ({navigation}: any) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.profileImageContainer}>
-          <Image style={styles.profileImage} />
-        </View>
-
-        <View style={styles.profileDetails}>
-          <View style={styles.profileField}>
-            <Text style={styles.label}>Nombre:</Text>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={formData.nombreUsuario}
-                onChangeText={(text) => handleInputChange('nombreUsuario', text)}
-              />
-            ) : (
-              <Text style={styles.text}>{formData.nombreUsuario}</Text>
-            )}
+      {loading ? (
+        // Mostrar el indicador de carga
+        <ActivityIndicator size="large" color="#007bff" />
+      ) : (
+        <View style={styles.card}>
+          <View style={styles.profileImageContainer}>
+            <Image style={styles.profileImage} />
           </View>
 
-          <View style={styles.profileField}>
-            <Text style={styles.label}>Email:</Text>
-            <Text style={styles.text}>{formData.correoUsuario}</Text>
-          </View>
+          <View style={styles.profileDetails}>
+            <View style={styles.profileField}>
+              <Text style={styles.label}>Nombre:</Text>
+              {isEditing ? (
+                <TextInput
+                  style={styles.input}
+                  value={formData.nombreUsuario}
+                  onChangeText={(text) => handleInputChange('nombreUsuario', text)}
+                />
+              ) : (
+                <Text style={styles.text}>{formData.nombreUsuario}</Text>
+              )}
+            </View>
 
-          <Button
-            title={isEditing ? 'Guardar' : 'Editar'}
-            onPress={handleEditClick}
-            color="#007bff"
-          />
+            <View style={styles.profileField}>
+              <Text style={styles.label}>Email:</Text>
+              <Text style={styles.text}>{formData.correoUsuario}</Text>
+            </View>
+
+            <Button
+              title={isEditing ? 'Guardar' : 'Editar'}
+              onPress={handleEditClick}
+              color="#007bff"
+            />
+          </View>
         </View>
-      </View>
+      )}
+
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <Ionicons name="home-outline" size={30} color="#333" />
@@ -113,13 +121,6 @@ const User = ({navigation}: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#0072ff',
-  },
   card: {
     width: '90%',
     borderRadius: 15,
@@ -167,12 +168,25 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   bottomNav: {
+    position: 'absolute', // Fija el navbar en la parte inferior
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderColor: '#ddd',
+    height: 60, // Ajusta el tamaño del navbar
+  },
+  container: {
+    flex: 1,
+    paddingTop: 20,
+    paddingBottom: 70, // Asegura que el contenido no se superponga con el navbar
+    backgroundColor: '#0072ff',
+    justifyContent: 'center', // Alinea el contenido en la parte superior
+    alignItems: 'center', // Centra el contenido horizontalmente
   },
 });
 

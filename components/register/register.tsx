@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { registerUser, handleAuthError } from '../backend/firebase';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Register = ({ navigation }: any) => {
   const [username, setUsername] = useState('');
@@ -25,6 +26,7 @@ const Register = ({ navigation }: any) => {
   };
 
   return (
+    <SafeAreaView style={{flex: 1}} >
     <LinearGradient colors={['#6a11cb', '#2575fc']} style={styles.gradient}>
       <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.backButton}>
         <Text style={styles.backButtonText}>← Volver</Text>
@@ -69,6 +71,7 @@ const Register = ({ navigation }: any) => {
         </View>
       </View>
     </LinearGradient>
+    </SafeAreaView>
   );
 };
 

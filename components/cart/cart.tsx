@@ -5,6 +5,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { firebaseConfig } from '../constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Definición de tipos
 type CartItem = {
@@ -60,12 +61,13 @@ const Cart = ({ route, navigation }: CartProps) => {
   };
 
   return (
+    <SafeAreaView style={{flex: 1}}>
     <View style={styles.container}>
       {/* Botón de Volver */}
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#007bff" />
       </TouchableOpacity>
-
+      
       <Text style={styles.title}>Productos en el Carrito</Text>
       
       {Object.keys(cart).length === 0 ? (
@@ -115,6 +117,7 @@ const Cart = ({ route, navigation }: CartProps) => {
       </View>
 
     </View>
+    </SafeAreaView>
   );
 };
 
@@ -168,6 +171,11 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   bottomNav: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 60,
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,

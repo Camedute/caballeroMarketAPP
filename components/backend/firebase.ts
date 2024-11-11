@@ -83,5 +83,7 @@ export const handleStoresHome = async () => {
   } catch (error) {
     console.error("Error obteniendo las tiendas y productos:", error);
     return [];
-  }
+  };
+
+  
 };

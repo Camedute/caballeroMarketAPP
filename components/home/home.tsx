@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, ScrollView, ActivityIndicator } from 'react-native';
 import { handleStoresHome } from '../backend/firebase';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Home = ({ navigation }: any) => {
   const [cart, setCart] = useState({});
   const [stores, setStores] = useState([]);
+  const [loading, setLoading] = useState(true);  // Estado para manejar la carga
 
   useEffect(() => {
     const fetchStores = async () => {
-      const storesData = await handleStoresHome();
-      setStores(storesData);
+      try {
+        const storesData = await handleStoresHome();
+        setStores(storesData);
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+      } finally {
+        setLoading(false); // Dejar de mostrar el indicador de carga una vez que los datos estén listos
+      }
     };
     fetchStores();
   }, []);
@@ -42,59 +50,66 @@ const Home = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Barra de búsqueda */}
-      <View style={styles.searchBar}>
-        <Ionicons name="search" size={20} color="#666" />
-        <TextInput style={styles.searchInput} placeholder="Buscar" />
-      </View>
+    <SafeAreaView style={{flex: 1}}>
+      <View style={styles.container}>
+        {/* Barra de búsqueda */}
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color="#666" />
+          <TextInput style={styles.searchInput} placeholder="Buscar" />
+        </View>
 
-      <Text style={styles.title}>Tiendas y Productos</Text>
+        <Text style={styles.title}>Tiendas y Productos</Text>
 
-      <FlatList
-        data={stores}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.storeItem}>
-            <Text style={styles.storeName}>{item.nombreLocal}</Text>
+        {/* Mostrar el indicador de carga si estamos esperando los datos */}
+        {loading ? (
+          <ActivityIndicator size="large" color="#0072ff" style={styles.loader} />
+        ) : (
+          <FlatList
+            data={stores}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.storeItem}>
+                <Text style={styles.storeName}>{item.nombreLocal}</Text>
 
-            {/* Productos en scroll horizontal */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {item.productos.map((product: any) => (
-                <View key={product.id} style={styles.product}>
-                  <Text style={styles.productName}>{product.nombreProducto}</Text>
-                  <Text style={styles.productPrice}>${product.precioProducto}</Text>
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => addToCart(product)}
-                  >
-                    <Text style={styles.addButtonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+                {/* Productos en scroll horizontal */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {item.productos.map((product: any) => (
+                    <View key={product.id} style={styles.product}>
+                      <Text style={styles.productName}>{product.nombreProducto}</Text>
+                      <Text style={styles.productPrice}>${product.precioProducto}</Text>
+                      <TouchableOpacity
+                        style={styles.addButton}
+                        onPress={() => addToCart(product)}
+                      >
+                        <Text style={styles.addButtonText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            ListEmptyComponent={<Text>No hay tiendas disponibles</Text>}
+            contentContainerStyle={stores.length === 0 ? styles.emptyList : null} // Ajuste para centrar la lista vacía
+          />
         )}
-        ListEmptyComponent={<Text>No hay tiendas disponibles</Text>}
-        contentContainerStyle={stores.length === 0 ? styles.emptyList : null} // Ajuste para centrar la lista vacía
-      />
 
-      {/* Barra de navegación inferior */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Ionicons name="home-outline" size={30} color="#333" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
-          <Ionicons name="qr-code-outline" size={30} color="#333" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name="person-outline" size={30} color="#333" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={viewCart}>
-          <Ionicons name="cart-outline" size={30} color="#333" />
-        </TouchableOpacity>
+        {/* Barra de navegación inferior */}
+        <View style={styles.bottomNav}>
+          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+            <Ionicons name="home-outline" size={30} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+            <Ionicons name="qr-code-outline" size={30} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <Ionicons name="person-outline" size={30} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={viewCart}>
+            <Ionicons name="cart-outline" size={30} color="#333" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -139,6 +154,11 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   emptyList: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
