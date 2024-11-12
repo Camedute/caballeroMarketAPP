@@ -10,7 +10,7 @@ import { firebaseConfig } from '../constants';
 import { Ionicons } from '@expo/vector-icons';
 import Cart from '../cart/cart';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import QRCode from 'react-native-qrcode-svg';  // Importar la librería QRCode
+import QRCode from 'react-native-qrcode-svg';
 
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
@@ -41,6 +41,13 @@ const QRScanner: React.FC = ({ navigation }: any) => {
     setScanned(true);
     setShowCamera(false);
     setQrData(data);  // Guardamos el ID escaneado
+
+    const user = auth.currentUser;
+    if (user) {
+      console.log(`ID Usuario: ${user.uid}`);
+    }
+    console.log(`ID Escaneado (QR): ${data}`);
+
     await confirmOrder(data);
 
     setTimeout(() => {
@@ -114,11 +121,15 @@ const QRScanner: React.FC = ({ navigation }: any) => {
             <Text style={styles.tabText}>Escanear</Text>
           </TouchableOpacity>
         </View>
-
+  
         {!showCamera ? (
           <View style={styles.qrContainer}>
-            <Icon name="qrcode-scan" size={100} color="#000" />
-            <Text style={styles.qrText}>QR</Text>
+            <QRCode
+              value={auth.currentUser?.uid || 'Sin usuario'}
+              size={200}
+              color="black"
+              backgroundColor="white"
+            />
           </View>
         ) : (
           <CameraView
@@ -133,23 +144,11 @@ const QRScanner: React.FC = ({ navigation }: any) => {
             </TouchableOpacity>
           </CameraView>
         )}
-
-        {!showCamera && qrData && (
-          <View style={styles.qrContainer}>
-            <QRCode
-              value={qrData}  // Generamos el QR con el ID escaneado
-              size={200}
-              color="black"
-              backgroundColor="white"
-            />
-            <Text style={styles.qrText}>QR Generado: {qrData}</Text>
-          </View>
-        )}
-
+  
         <TouchableOpacity style={styles.scanButton} onPress={handleShowCamera}>
           <Text style={styles.scanButtonText}>Escanear</Text>
         </TouchableOpacity>
-
+  
         <Modal isVisible={modalVisible}>
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>Escaneado con éxito</Text>
@@ -157,24 +156,26 @@ const QRScanner: React.FC = ({ navigation }: any) => {
             <Button title="Cerrar" onPress={() => setModalVisible(false)} />
           </View>
         </Modal>
-
-        <View style={styles.bottomNav}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-            <Ionicons name="home-outline" size={30} color="#333" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
-            <Ionicons name="qr-code-outline" size={30} color="#333" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <Ionicons name="person-outline" size={30} color="#333" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={viewCart}>
-            <Ionicons name="cart-outline" size={30} color="#333" />
-          </TouchableOpacity>
-        </View>
+      </View>
+  
+      {/* Aquí añadimos el Navbar */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Ionicons name="home-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+          <Ionicons name="qr-code-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Ionicons name="person-outline" size={30} color="#333" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={viewCart}>
+          <Ionicons name="cart-outline" size={30} color="#333" />
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
+  
 };
 
 const styles = StyleSheet.create({
@@ -240,21 +241,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 20,
   },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
   bottomNav: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 60,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 15,
-    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
   },
+  
 });
 
 export default QRScanner;

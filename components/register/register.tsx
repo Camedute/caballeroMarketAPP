@@ -3,6 +3,8 @@ import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'reac
 import { LinearGradient } from 'expo-linear-gradient';
 import { registerUser, handleAuthError } from '../backend/firebase';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+
 
 const Register = ({ navigation }: any) => {
   const [username, setUsername] = useState('');
@@ -29,7 +31,7 @@ const Register = ({ navigation }: any) => {
     <SafeAreaView style={{flex: 1}} >
     <LinearGradient colors={['#6a11cb', '#2575fc']} style={styles.gradient}>
       <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.backButton}>
-        <Text style={styles.backButtonText}>← Volver</Text>
+      <Ionicons name="arrow-back" size={28} color="#000000" />
       </TouchableOpacity>
 
       <View style={styles.container}>

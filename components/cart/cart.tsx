@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, TouchableOpacity, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { firebaseConfig } from '../constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Definición de tipos
 type CartItem = {
   nombre: string;
   cantidad: number;
@@ -38,10 +37,10 @@ const Cart = ({ route, navigation }: CartProps) => {
   const viewCart = () => {
     navigation.navigate('Cart', { cartGo });
   };
-  
+
   const handleCart = async () => {
-    if (Object.entries(cart).length <= 0){
-      Alert.alert('Error','No has agregado productos al carrito.');
+    if (Object.entries(cart).length <= 0) {
+      Alert.alert('Error', 'No has agregado productos al carrito.');
     } else {
       try {
         const pedidoRef = collection(firestore, 'Pedidos');
@@ -50,7 +49,7 @@ const Cart = ({ route, navigation }: CartProps) => {
           idCliente: user?.uid,
           metodoPago: tipoPago,
           fecha: new Date(),
-          realizado: false
+          realizado: false,
         });
         Alert.alert('Pedido enviado correctamente');
         navigation.navigate('Home');
@@ -61,62 +60,74 @@ const Cart = ({ route, navigation }: CartProps) => {
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-    <View style={styles.container}>
-      {/* Botón de Volver */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#007bff" />
-      </TouchableOpacity>
-      
-      <Text style={styles.title}>Productos en el Carrito</Text>
-      
-      {Object.keys(cart).length === 0 ? (
-        <Text>No hay productos en el carrito.</Text>
-      ) : (
-        <FlatList
-          data={Object.entries(cart)}
-          keyExtractor={([productId]) => productId}
-          contentContainerStyle={styles.productList}
-          renderItem={({ item: [productId, product] }) => (
-            <View style={styles.productCard}>
-              <Text style={styles.productText}>Producto: {product.nombre}</Text>
-              <Text style={styles.productText}>Cantidad: {product.cantidad}</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={styles.container}>
+            {/* Botón de Volver */}
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#007bff" />
+            </TouchableOpacity>
+
+            <Text style={styles.title}>Productos en el Carrito</Text>
+
+            {Object.keys(cart).length === 0 ? (
+              <Text>No hay productos en el carrito.</Text>
+            ) : (
+              <FlatList
+                data={Object.entries(cart)}
+                keyExtractor={([productId]) => productId}
+                contentContainerStyle={styles.productList}
+                renderItem={({ item: [productId, product] }) => (
+                  <View style={styles.productCard}>
+                    <Text style={styles.productText}>Producto: {product.nombre}</Text>
+                    <Text style={styles.productText}>Cantidad: {product.cantidad}</Text>
+                  </View>
+                )}
+              />
+            )}
+
+            <View style={styles.paymentOptions}>
+              <Text>Seleccione método de pago:</Text>
+              <TouchableOpacity onPress={() => setTipoPago('efectivo')}>
+                <Text style={[styles.paymentButton, tipoPago === 'efectivo' && styles.selectedPayment]}>
+                  Efectivo
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setTipoPago('debito')}>
+                <Text style={[styles.paymentButton, tipoPago === 'debito' && styles.selectedPayment]}>
+                  Débito
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setTipoPago('credito')}>
+                <Text style={[styles.paymentButton, tipoPago === 'credito' && styles.selectedPayment]}>
+                  Crédito
+                </Text>
+              </TouchableOpacity>
             </View>
-          )}
-        />
-      )}
 
-      <View style={styles.paymentOptions}>
-        <Text>Seleccione método de pago:</Text>
-        <TouchableOpacity onPress={() => setTipoPago('efectivo')}>
-          <Text style={[styles.paymentButton, tipoPago === 'efectivo' && styles.selectedPayment]}>Efectivo</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setTipoPago('debito')}>
-          <Text style={[styles.paymentButton, tipoPago === 'debito' && styles.selectedPayment]}>Débito</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setTipoPago('credito')}>
-          <Text style={[styles.paymentButton, tipoPago === 'credito' && styles.selectedPayment]}>Crédito</Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity style={styles.orderButton} onPress={handleCart}>
+              <Text style={styles.orderButtonText}>Solicitar Pedido</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
 
-      <Button title="Solicitar Pedido" onPress={handleCart} />
-
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Ionicons name="home-outline" size={30} color="#333" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
-          <Ionicons name="qr-code-outline" size={30} color="#333" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name="person-outline" size={30} color="#333" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={viewCart}>
-          <Ionicons name="cart-outline" size={30} color="#333" />
-        </TouchableOpacity>
-      </View>
-
-    </View>
+        {/* Barra de Navegación Inferior */}
+        <View style={styles.bottomNav}>
+          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+            <Ionicons name="home-outline" size={30} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+            <Ionicons name="qr-code-outline" size={30} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <Ionicons name="person-outline" size={30} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={viewCart}>
+            <Ionicons name="cart-outline" size={30} color="#333" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -149,8 +160,6 @@ const styles = StyleSheet.create({
     padding: 15,
     marginVertical: 10,
     borderRadius: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
   productText: {
     fontSize: 16,
@@ -170,11 +179,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#007bff',
     color: '#fff',
   },
+  orderButton: {
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: '#007bff',
+    alignItems: 'center',
+  },
+  orderButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
   bottomNav: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     height: 60,
     flexDirection: 'row',
     justifyContent: 'space-around',

@@ -1,11 +1,13 @@
 // Importar la configuración de Firebase
 import { firebaseConfig } from "../constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Importar herramientas de Firebase
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, Firestore, getDocs, query, where } from "firebase/firestore";
 import { Alert } from "react-native";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 
 // Inicialización de Firebase
 if (getApps().length === 0) {
@@ -56,11 +58,23 @@ export const handleStoresHome = async () => {
   try {
     const storesRef = collection(firestore, 'Duenos');
     const storesSnap = await getDocs(storesRef);
+    const storage = getStorage();  // Obtener el servicio de Firebase Storage
 
     const storesData = await Promise.all(
       storesSnap.docs.map(async (storeDoc) => {
         const storeData = storeDoc.data();
         const storeId = storeDoc.id;
+
+        // Obtén la URL de la imagen del local desde Firebase Storage
+        let imageUrl = null;
+        if (storeData.imagenUrl) {
+          const imageRef = ref(storage, storeData.imagenUrl); // Asume que imagenUrl es la referencia en Storage
+          try {
+            imageUrl = await getDownloadURL(imageRef);
+          } catch (error) {
+            console.error("Error obteniendo la imagen de Firebase Storage:", error);
+          }
+        }
 
         // Obtén los productos del dueño desde Inventario
         const inventoryRef = doc(firestore, 'Inventario', storeId);
@@ -75,6 +89,7 @@ export const handleStoresHome = async () => {
           id: storeId,
           ...storeData,
           productos,
+          imageUrl, // Agregar la URL de la imagen al objeto retornado
         };
       })
     );
@@ -83,7 +98,5 @@ export const handleStoresHome = async () => {
   } catch (error) {
     console.error("Error obteniendo las tiendas y productos:", error);
     return [];
-  };
-
-  
+  }
 };

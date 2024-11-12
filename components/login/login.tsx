@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { signInWithEmailAndPassword } from 'firebase/auth';  // Importar solo lo necesario
-import { auth } from '../backend/firebase'; // Importar la configuración de Firebase desde el archivo separado
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../backend/firebase';
 
 const Login = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
@@ -17,12 +17,10 @@ const Login = ({ navigation }: any) => {
     }
 
     try {
-      // Intento de inicio de sesión con Firebase Authentication
       await signInWithEmailAndPassword(auth, email, password);
-      await AsyncStorage.setItem('userToken', 'logged_in');  // Guardar token en AsyncStorage
-      navigation.navigate('Home');  // Navegar al Home si el login es exitoso
+      await AsyncStorage.setItem('userToken', 'logged_in');
+      navigation.navigate('Home');
     } catch (error: any) {
-      console.log(error.message);
       const errorMsj = error.message;
       if (errorMsj === "Firebase: Error (auth/invalid-email).") {
         Alert.alert("Error", "Por favor, ingrese un correo válido");
@@ -37,6 +35,9 @@ const Login = ({ navigation }: any) => {
   return (
     <LinearGradient colors={['#00c6ff', '#0072ff']} style={styles.gradient}>
       <View style={styles.loginBox}>
+        {/* Texto grande y bonito para "CaballeroMarket" */}
+        <Text style={styles.logoText}>CaballeroMarket</Text>
+        
         <Text style={styles.title}>Ingresar Sesión</Text>
         
         <TextInput
@@ -80,12 +81,23 @@ const styles = StyleSheet.create({
   loginBox: {
     width: '90%',
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 10, 
+    elevation: 10,
+  },
+  // Estilo para el texto grande de "CaballeroMarket"
+  logoText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#0072ff',
+    textAlign: 'center',
+    marginBottom: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
   title: {
     fontSize: 24,

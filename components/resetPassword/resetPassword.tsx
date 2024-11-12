@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../backend/firebase';
-import { useNavigation } from '@react-navigation/native'; // Importa el hook de navegación
+import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ResetPassword: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const navigation = useNavigation(); // Hook para la navegación
+  const navigation = useNavigation();
 
   // Función para manejar el restablecimiento de contraseña
   const handleResetPassword = async () => {
@@ -50,26 +53,41 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Restablecer Contraseña</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Correo Electrónico✉️"
-        value={email}
-        onChangeText={(text) => setEmail(text)}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
+    <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient colors={['#4c669f', '#3b5998', '#192f6a']} style={styles.container}>
+        {/* Botón de volver */}
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Login')}>
+          <Ionicons name="arrow-back" size={28} color="#fff" />
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-        <Text style={styles.buttonText}>Restablecer Contraseña</Text>
-      </TouchableOpacity>
+        <View style={styles.card}>
+          <Text style={styles.title}>Restablecer Contraseña</Text>
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {success ? <Text style={styles.successText}>{success}</Text> : null}
-    </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Correo Electrónico✉️"
+            placeholderTextColor="#ccc"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          {/* Texto informativo */}
+          <Text style={styles.infoText}>
+            Ingresarás tu correo y recibirás un enlace para restablecer tu contraseña.
+          </Text>
+
+          <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+            <Text style={styles.buttonText}>Restablecer Contraseña</Text>
+          </TouchableOpacity>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {success ? <Text style={styles.successText}>{success}</Text> : null}
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
@@ -77,48 +95,75 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    padding: 10,
+  },
+  card: {
+    width: '100%',
+    padding: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 10,
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#f9f9f9',
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 28,
+    marginBottom: 30,
     fontWeight: 'bold',
     color: '#333',
+    textAlign: 'center',
   },
   input: {
     width: '100%',
-    height: 50,
+    height: 55,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
     fontSize: 16,
+    color: '#333',
+    marginBottom: 15,
+  },
+  infoText: {
+    color: '#555',
+    fontSize: 14,
     marginBottom: 20,
+    textAlign: 'center',
   },
   button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    backgroundColor: '#3b5998',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
     borderRadius: 10,
-    width: '100%',
     alignItems: 'center',
+    marginTop: 15,
+    minWidth: 250,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   errorText: {
-    color: 'red',
+    color: '#ff4d4d',
     marginTop: 10,
     fontSize: 14,
+    textAlign: 'center',
   },
   successText: {
-    color: 'green',
+    color: '#00cc66',
     marginTop: 10,
     fontSize: 14,
+    textAlign: 'center',
   },
 });
 
