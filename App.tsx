@@ -8,6 +8,8 @@ import Home from './components/home/home';
 import QRScanner from './components/qrscanner/qrscanner';
 import User from './components/user/user';
 import ResetPassword from './components/resetPassword/resetPassword';
+import Local from './components/local/local';
+import SearchResults from './components/search/search';
 
 const Stack = createStackNavigator();
 
@@ -21,7 +23,9 @@ const App = () => {
         <Stack.Screen name="Profile" component={User} />
         <Stack.Screen name="Cart" component={Cart} />
         <Stack.Screen name="resetPassword" component={ResetPassword} />
+        <Stack.Screen name="Local" component={Local} />
         <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Search" component={SearchResults} />
       </Stack.Navigator>
     </NavigationContainer>
   );

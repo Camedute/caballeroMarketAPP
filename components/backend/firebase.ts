@@ -14,6 +14,13 @@ if (getApps().length === 0) {
   initializeApp(firebaseConfig);
 }
 
+interface StoreData {
+  id: string; // Asumiendo que cada documento tiene un ID
+  nombreLocal: string;
+  // Agrega otros campos según sea necesario
+}
+
+
 export const auth = getAuth();
 export const firestore = getFirestore();
 
@@ -100,3 +107,71 @@ export const handleStoresHome = async () => {
     return [];
   }
 };
+
+export const handleStoresSearch = async (storeId: string, searchQuery: string) => {
+  try {
+    const dataInventory = doc(firestore, 'Inventario', storeId);
+    const docInventory = await getDoc(dataInventory);
+
+    if (!docInventory.exists()) {
+      console.log(`No se encontró inventario para el id: ${storeId}`);
+      return [];
+    }
+
+    const inventoryData = docInventory.data();
+    const productos = inventoryData?.productos || [];
+
+    // Filtramos los productos según el nombre del producto que coincida con el query
+    const productosFiltrados = productos.filter((producto: any) => {
+      const nombreProducto = producto?.nombreProducto?.toLowerCase() || '';
+      return nombreProducto.includes(searchQuery.toLowerCase());
+    });
+    console.log(productosFiltrados);
+    return productosFiltrados;
+  } catch (error) {
+    console.error("Error realizando la búsqueda:", error);
+    return [];
+  }
+};
+
+export const handleStoreSearch = async (searchQuery: string): Promise<StoreData[]> => {
+  try {
+    console.log('searchQuery:', searchQuery);
+
+    if (!searchQuery.trim()) {
+      console.log('No se ha proporcionado una consulta de búsqueda válida.');
+      return [];
+    }
+
+    const dataStores = collection(firestore, 'Duenos');
+    const docStores = await getDocs(dataStores);
+
+    if (docStores.empty) {
+      console.log('No se encontraron locales');
+      return [];
+    }
+
+    const productosFiltrados: StoreData[] = [];
+
+    docStores.forEach((doc) => {
+      const storeData = doc.data() as StoreData; // Asegúrate de usar el tipo correcto
+      console.log('storeData:', storeData);
+
+      const nombreLocal = storeData?.nombreLocal?.trim().toLowerCase() || '';
+      console.log('Comparando con:', nombreLocal);
+
+      if (nombreLocal.includes(searchQuery.trim().toLowerCase())) {
+        productosFiltrados.push(storeData);
+      }
+    });
+
+    console.log('Productos filtrados:', productosFiltrados);
+    return productosFiltrados;
+  } catch (error) {
+    console.error('Error realizando la búsqueda:', error);
+    return [];
+  }
+};
+
+
+

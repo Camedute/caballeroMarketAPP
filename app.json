@@ -28,6 +28,9 @@
       "eas": {
         "projectId": "def2d969-728b-43d7-90b3-c1620ed17371"
       }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
     }
   }
 }
