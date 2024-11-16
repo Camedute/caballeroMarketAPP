@@ -55,7 +55,6 @@ const App = () => {
             <Stack.Screen name="QRScanner" component={QRScanner} />
             <Stack.Screen name="Profile" component={User} />
             <Stack.Screen name="Cart" component={Cart} />
-            <Stack.Screen name="ResetPassword" component={ResetPassword} />
             <Stack.Screen name="Local" component={Local} />
             <Stack.Screen name="Search" component={SearchResults} />
           </>
@@ -64,6 +63,7 @@ const App = () => {
           <>
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Register" component={Register} />
+            <Stack.Screen name="reset" component={ResetPassword} />
           </>
         )}
       </Stack.Navigator>

@@ -31,6 +31,19 @@ const Login = ({ navigation }: any) => {
     }
   };
 
+
+  const handleRegisterReset = async (id: string) => {
+
+    if(id == "register"){
+      console.log("register");
+      navigation.navigate("Register");
+    } else if(id == "reset"){
+      console.log("reset");
+      navigation.navigate('reset');
+    }
+
+  };
+
   return (
     <ImageBackground
       source={require('../../assets/abarrotes.jpg')}
@@ -66,11 +79,11 @@ const Login = ({ navigation }: any) => {
             <Text style={styles.loginButtonText}>Iniciar Sesión🚪</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
+          <TouchableOpacity onPress={() => handleRegisterReset("reset")}>
             <Text style={styles.registerText}>¿Se te olvidó la contraseña? Recuperala acá🥲</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <TouchableOpacity onPress={() => handleRegisterReset("register")}>
             <Text style={styles.registerText}>¿No tienes cuenta? Regístrate✍️</Text>
           </TouchableOpacity>
         </View>
