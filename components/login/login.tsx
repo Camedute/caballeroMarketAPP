@@ -9,7 +9,6 @@ const Login = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Función para manejar el login
   const handleLogin = async () => {
     if (email === '' || password === '') {
       Alert.alert('Error', 'Por favor ingresa un correo electrónico y una contraseña.');
@@ -35,7 +34,6 @@ const Login = ({ navigation }: any) => {
   return (
     <LinearGradient colors={['#00c6ff', '#0072ff']} style={styles.gradient}>
       <View style={styles.loginBox}>
-        {/* Texto grande y bonito para "CaballeroMarket" */}
         <Text style={styles.logoText}>CaballeroMarket</Text>
         
         <Text style={styles.title}>Ingresar Sesión</Text>
@@ -61,7 +59,7 @@ const Login = ({ navigation }: any) => {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('resetPassword')}>
-          <Text style={styles.registerText}>Se te olvidó la contraseña? Recuperala acá🥲</Text>
+          <Text style={styles.registerText}>¿Se te olvidó la contraseña? Recuperala acá🥲</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -81,45 +79,41 @@ const styles = StyleSheet.create({
   loginBox: {
     width: '90%',
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 15,
     shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 10,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  // Estilo para el texto grande de "CaballeroMarket"
   logoText: {
-    fontSize: 36,
-    fontWeight: 'bold',
+    fontSize: 34,
+    fontWeight: '700',
     color: '#0072ff',
     textAlign: 'center',
     marginBottom: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '600',
     color: '#333',
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: 'center',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+    borderColor: '#ddd',
+    borderRadius: 10,
     padding: 10,
     marginBottom: 15,
-    backgroundColor: '#fff',
+    backgroundColor: '#f9f9f9',
   },
   loginButton: {
     backgroundColor: '#0072ff',
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   loginButtonText: {
     color: '#fff',
