@@ -82,7 +82,7 @@ const Home = ({ navigation }: any) => {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Buscar"
+            placeholder="Buscar tienda"
           />
           <TouchableOpacity onPress={handleSearch}>
             <Text>🔎</Text>

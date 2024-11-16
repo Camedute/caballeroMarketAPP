@@ -1,5 +1,5 @@
 // Importar la configuración de Firebase
-import { firebaseConfig } from "../constants";
+import { firebaseConfig } from "./credenciales.ts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Importar herramientas de Firebase
@@ -24,7 +24,7 @@ interface StoreData {
 export const auth = getAuth();
 export const firestore = getFirestore();
 
-// Función para registrar usuario
+// Función para registrar usuario 
 export const registerUser = async (email: string, password: string, username: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);

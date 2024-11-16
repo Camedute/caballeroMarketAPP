@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { firebaseConfig } from '../constants';
+import { firebaseConfig } from '../backend/credenciales';
 import { Ionicons } from '@expo/vector-icons';
 import Cart from '../cart/cart';
 import { SafeAreaView } from 'react-native-safe-area-context';

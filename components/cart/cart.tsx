@@ -4,7 +4,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
-import { firebaseConfig } from '../constants';
+import { firebaseConfig } from '../backend/credenciales';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type CartItem = {
