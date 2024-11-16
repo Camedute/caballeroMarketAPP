@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TextInput, Button, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const User = ({navigation}: any) => {
   const [cart, setCart] = useState({});
@@ -20,6 +21,21 @@ const User = ({navigation}: any) => {
   const auth = getAuth();
   const firestore = getFirestore();
   const user = auth.currentUser;
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      await AsyncStorage.removeItem('userToken');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      Alert.alert('Error', 'Hubo un problema al cerrar sesión');
+    }
+  };
+  
 
   // Función para obtener los datos del usuario desde Firestore
   const fetchUserData = async () => {
@@ -65,6 +81,7 @@ const User = ({navigation}: any) => {
 
   return (
     <View style={styles.container}>
+      <Button title="salir"onPress={handleLogout} />
       {loading ? (
         // Mostrar el indicador de carga
         <ActivityIndicator size="large" color="#007bff" />
@@ -83,6 +100,7 @@ const User = ({navigation}: any) => {
                   value={formData.nombreUsuario}
                   onChangeText={(text) => handleInputChange('nombreUsuario', text)}
                 />
+                
               ) : (
                 <Text style={styles.text}>{formData.nombreUsuario}</Text>
               )}
