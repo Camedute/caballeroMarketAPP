@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -32,45 +32,55 @@ const Login = ({ navigation }: any) => {
   };
 
   return (
-    <LinearGradient colors={['#00c6ff', '#0072ff']} style={styles.gradient}>
-      <View style={styles.loginBox}>
-        <Text style={styles.logoText}>CaballeroMarket</Text>
-        
-        <Text style={styles.title}>Ingresar Sesión</Text>
-        
-        <TextInput
-          placeholder="Correo electrónico✉️"
-          value={email}
-          onChangeText={setEmail}
-          style={styles.input}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TextInput
-          placeholder="Contraseña🙊"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.input}
-        />
-        
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Iniciar Sesión🚪</Text>
-        </TouchableOpacity>
+    <ImageBackground
+      source={require('../../assets/Negocio.jpg')}
+      style={styles.backgroundImage}
+      imageStyle={{ opacity: 0.3 }}
+    >
+      <LinearGradient colors={['#00c6ff', '#0072ff']} style={styles.gradient}>
+        <View style={styles.loginBox}>
+          <Text style={styles.logoText}>CaballeroMarket</Text>
+          
+          <Text style={styles.title}>Ingresar Sesión</Text>
+          
+          <TextInput
+            placeholder="Correo electrónico✉️"
+            value={email}
+            onChangeText={setEmail}
+            style={styles.input}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TextInput
+            placeholder="Contraseña🙊"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={styles.input}
+          />
+          
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Iniciar Sesión🚪</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('resetPassword')}>
-          <Text style={styles.registerText}>¿Se te olvidó la contraseña? Recuperala acá🥲</Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('resetPassword')}>
+            <Text style={styles.registerText}>¿Se te olvidó la contraseña? Recuperala acá🥲</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerText}>¿No tienes cuenta? Regístrate✍️</Text>
-        </TouchableOpacity>
-      </View>
-    </LinearGradient>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.registerText}>¿No tienes cuenta? Regístrate✍️</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   gradient: {
     flex: 1,
     justifyContent: 'center',
