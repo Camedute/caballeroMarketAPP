@@ -33,11 +33,14 @@ const Login = ({ navigation }: any) => {
 
   return (
     <ImageBackground
-      source={require('../../assets/Negocio.jpg')}
-      style={styles.backgroundImage}
-      imageStyle={{ opacity: 0.3 }}
+      source={require('../../assets/abarrotes.jpg')}
+      style={styles.background}
+      imageStyle={{ resizeMode: 'cover' }}  // Asegura que la imagen se estire
     >
-      <LinearGradient colors={['#00c6ff', '#0072ff']} style={styles.gradient}>
+      <LinearGradient
+        colors={['rgba(0, 198, 255, 0.7)', 'rgba(0, 114, 255, 0.7)']}
+        style={styles.gradient}
+      >
         <View style={styles.loginBox}>
           <Text style={styles.logoText}>CaballeroMarket</Text>
           
@@ -63,7 +66,7 @@ const Login = ({ navigation }: any) => {
             <Text style={styles.loginButtonText}>Iniciar Sesión🚪</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('resetPassword')}>
+          <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
             <Text style={styles.registerText}>¿Se te olvidó la contraseña? Recuperala acá🥲</Text>
           </TouchableOpacity>
 
@@ -77,19 +80,21 @@ const Login = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
+  background: {
+    flex: 1,  // Asegura que la imagen cubra toda la pantalla
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   gradient: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
   },
   loginBox: {
-    width: '90%',
+    width: '80%',
     padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',  // Añadir transparencia
     borderRadius: 15,
     shadowColor: '#000',
     shadowOpacity: 0.3,
