@@ -89,18 +89,19 @@ const Local: React.FC<StoreDetailsProps> = () => {
     if (searchQuery === "") {
       Alert.alert("Error","Por favor ingrese un producto");
     } else {
-    try {
-      const results = await handleStoresSearch(storeId, searchQuery);
-      console.log('Resultados de búsqueda:', results);
-      setProducts(results); // Actualizar el estado con los productos filtrados
-    } catch (error) {
-      console.error('Error al realizar la búsqueda:', error);
+      try {
+        const results = await handleStoresSearch(storeId, searchQuery);
+        console.log('Resultados de búsqueda:', results);
+        setProducts(results); // Actualizar el estado con los productos filtrados
+      } catch (error) {
+        console.error('Error al realizar la búsqueda:', error);
+      }
     }
-  };};
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {/* Botón de regresar */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>← Regresar</Text>
@@ -149,40 +150,40 @@ const Local: React.FC<StoreDetailsProps> = () => {
           )}
         </View>
       </ScrollView>
+
+      {/* Barra de navegación inferior - con los mismos íconos y diseño del código original */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Ionicons name="home-outline" size={30} color="#007bff" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
+          <Ionicons name="qr-code-outline" size={30} color="#007bff" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+          <Ionicons name="person-outline" size={30} color="#007bff" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Carrito')}>
+          <Ionicons name="cart-outline" size={30} color="#007bff" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  searchBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  searchInput: {
-    marginLeft: 5,
-    fontSize: 16,
-    flex: 1,
-  },
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E0F7FA', // Fondo celeste
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
+  scrollViewContent: {
+    paddingBottom: 80, // Espacio adicional para el navbar
   },
   backButton: {
+    marginTop: 30,  // Espacio adicional para el botón de regresar
     marginBottom: 20,
     paddingVertical: 10,
     paddingHorizontal: 15,
-    backgroundColor: '#e91e63',
+    backgroundColor: '#007bff', // Azul
     borderRadius: 5,
     alignSelf: 'flex-start',
   },
@@ -191,43 +192,66 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  searchBar: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 20,  // Aumenta el margen inferior para separar más de la siguiente sección
+  },
+  searchInput: {
+    marginLeft: 5,
+    fontSize: 16,
+    flex: 1,
+  },
   storeContainer: {
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 12,
+    padding: 20,
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   storeName: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
   },
   storeInfo: {
     fontSize: 16,
     color: '#666',
+    marginVertical: 5,
   },
   storeImage: {
     width: '100%',
     height: 150,
-    borderRadius: 8,
-    marginBottom: 10,
+    borderRadius: 12,
+    marginBottom: 15,
   },
   productContainer: {
-    marginTop: 20,
+    marginTop: 30,  // Se aumenta la separación de los productos con la información de la tienda
   },
   productCard: {
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 12,
+    padding: 15,
     marginBottom: 20,
-  },
-  productImage: {
-    width: '100%',
-    height: 100,
-    borderRadius: 8,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   productName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
   },
   productDetails: {
     fontSize: 14,
@@ -236,7 +260,21 @@ const styles = StyleSheet.create({
   productPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#e91e63',
+    color: '#007bff',
+  },
+  bottomNav: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#ddd',
+    height: 60,
+    zIndex: 10,
   },
 });
 
