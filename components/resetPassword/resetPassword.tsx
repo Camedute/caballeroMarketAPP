@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity, ImageBackground } from 'react-native';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../backend/firebase';
 import { useNavigation } from '@react-navigation/native';
@@ -53,8 +53,11 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <LinearGradient colors={['#4c669f', '#3b5998', '#192f6a']} style={styles.container}>
+    <ImageBackground 
+      source={require('../../assets/abarrotes.jpg')} // O usa {uri: 'URL_DE_LA_IMAGEN'}
+      style={styles.container}
+    >
+      <LinearGradient colors={['rgba(0, 198, 255, 0.7)', 'rgba(0, 114, 255, 0.7)']} style={styles.gradient}>
         {/* Botón de volver */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Login')}>
           <Ionicons name="arrow-back" size={28} color="#fff" />
@@ -66,7 +69,7 @@ const ResetPassword: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Correo Electrónico✉️"
-            placeholderTextColor="#ccc"
+            placeholderTextColor="#888"
             value={email}
             onChangeText={(text) => setEmail(text)}
             keyboardType="email-address"
@@ -74,7 +77,6 @@ const ResetPassword: React.FC = () => {
             autoCorrect={false}
           />
 
-          {/* Texto informativo */}
           <Text style={styles.infoText}>
             Ingresarás tu correo y recibirás un enlace para restablecer tu contraseña.
           </Text>
@@ -87,7 +89,7 @@ const ResetPassword: React.FC = () => {
           {success ? <Text style={styles.successText}>{success}</Text> : null}
         </View>
       </LinearGradient>
-    </SafeAreaView>
+    </ImageBackground>
   );
 };
 
@@ -95,7 +97,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  gradient: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButton: {
     position: 'absolute',
@@ -104,54 +112,52 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   card: {
-    width: '100%',
-    padding: 30,
+    width: '85%',
+    padding: 25,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
+    borderRadius: 15,
     shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 10,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
     alignItems: 'center',
   },
   title: {
     fontSize: 28,
-    marginBottom: 30,
+    marginBottom: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#0072ff',
     textAlign: 'center',
   },
   input: {
     width: '100%',
-    height: 55,
+    height: 50,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
     fontSize: 16,
     color: '#333',
+    backgroundColor: '#f9f9f9',
     marginBottom: 15,
   },
   infoText: {
-    color: '#555',
+    color: '#333',
     fontSize: 14,
     marginBottom: 20,
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#3b5998',
+    backgroundColor: '#0072ff',
     paddingVertical: 15,
-    paddingHorizontal: 40,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 15,
-    minWidth: 250,
+    width: '100%',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
   },
   errorText: {
     color: '#ff4d4d',
