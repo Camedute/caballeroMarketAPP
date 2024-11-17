@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Button, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput, Alert, Button } from 'react-native';
 import { firebaseConfig } from '../backend/credenciales'; 
 import { getApps, initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
@@ -32,6 +32,7 @@ type StoreData = {
 type ProductData = {
   nombreProducto: string;
   cantidadProducto: string;
+  Categoria: string;
   precioProducto: string;
   imagen: string;
 };
@@ -39,8 +40,9 @@ type ProductData = {
 const Local: React.FC<StoreDetailsProps> = () => {
   const [storeData, setStoreData] = useState<StoreData | null>(null);
   const [products, setProducts] = useState<ProductData[]>([]);
-  const [searchQuery, setSearchQuery] = useState(''); // Estado para el texto de búsqueda
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [groupedProducts, setGroupedProducts] = useState<{ [key: string]: ProductData[] }>({});
+
   const route = useRoute();
   const navigation = useNavigation();
   const { storeId } = route.params || {}; 
@@ -67,12 +69,26 @@ const Local: React.FC<StoreDetailsProps> = () => {
         if (inventoryDoc.exists()) {
           const inventoryData = inventoryDoc.data();
           if (inventoryData && Array.isArray(inventoryData.productos)) {
-            setProducts(inventoryData.productos.map((producto: any) => ({
+            const productos = inventoryData.productos.map((producto: any) => ({
               nombreProducto: producto.nombreProducto,
               cantidadProducto: producto.cantidadProducto,
+              Categoria: producto.Categoria,
               precioProducto: producto.precioProducto,
               imagen: producto.imagen,
-            })));
+            }));
+            setProducts(productos);
+            
+            // Agrupar los productos por categoría
+            const grouped = productos.reduce((acc: { [key: string]: ProductData[] }, product) => {
+              const category = product.Categoria || 'Sin Categoría';
+              if (!acc[category]) {
+                acc[category] = [];
+              }
+              acc[category].push(product);
+              return acc;
+            }, {});
+            
+            setGroupedProducts(grouped);
           }
         }
       } catch (error) {
@@ -84,15 +100,13 @@ const Local: React.FC<StoreDetailsProps> = () => {
     fetchInventoryData();
   }, [storeId]);
 
-  // Función para manejar la búsqueda
   const handleSearch = async () => {
     if (searchQuery === "") {
       Alert.alert("Error","Por favor ingrese un producto");
     } else {
       try {
         const results = await handleStoresSearch(storeId, searchQuery);
-        console.log('Resultados de búsqueda:', results);
-        setProducts(results); // Actualizar el estado con los productos filtrados
+        setProducts(results);
       } catch (error) {
         console.error('Error al realizar la búsqueda:', error);
       }
@@ -102,18 +116,16 @@ const Local: React.FC<StoreDetailsProps> = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {/* Botón de regresar */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>← Regresar</Text>
         </TouchableOpacity>
 
-        {/* Barra de búsqueda */}
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#666" />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
-            onChangeText={setSearchQuery} // Actualizar el estado con el texto ingresado
+            onChangeText={setSearchQuery}
             placeholder="Buscar"
           />
           <TouchableOpacity onPress={handleSearch}>
@@ -121,7 +133,6 @@ const Local: React.FC<StoreDetailsProps> = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Mostrar datos del dueño */}
         {storeData && (
           <View style={styles.storeContainer}>
             <Image source={{ uri: storeData.imagenUrl }} style={styles.storeImage} />
@@ -132,17 +143,21 @@ const Local: React.FC<StoreDetailsProps> = () => {
             <Text style={styles.storeInfo}>{storeData.correoUsuario}</Text>
           </View>
         )}
-        
-        {/* Mostrar productos del inventario */}
+
         <View style={styles.productContainer}>
-          {products.length > 0 ? (
-            products.map((product, index) => (
-              <View key={index} style={styles.productCard}>
-                {product.imagen && <Image source={{ uri: product.imagen }} style={styles.productImage} />}
-                <Text style={styles.productName}>{product.nombreProducto}</Text>
-                <Text style={styles.productDetails}>{`Cantidad: ${product.cantidadProducto}`}</Text>
-                <Text style={styles.productPrice}>{`Precio: $${product.precioProducto}`}</Text>
-                <Button title="Agregar Producto" onPress={() => navigation.navigate('AgregarProducto', { product })} />
+          {Object.keys(groupedProducts).length > 0 ? (
+            Object.entries(groupedProducts).map(([category, products]) => (
+              <View key={category}>
+                <Text style={styles.categoryTitle}>{category}</Text>
+                {products.map((product, index) => (
+                  <View key={index} style={styles.productCard}>
+                    {product.imagen && <Image source={{ uri: product.imagen }} style={styles.productImage} />}
+                    <Text style={styles.productName}>{product.nombreProducto}</Text>
+                    <Text style={styles.productDetails}>{`Cantidad: ${product.cantidadProducto}`}</Text>
+                    <Text style={styles.productPrice}>{`Precio: $${product.precioProducto}`}</Text>
+                    <Button title="Agregar producto"></Button>
+                  </View>
+                ))}
               </View>
             ))
           ) : (
@@ -150,22 +165,6 @@ const Local: React.FC<StoreDetailsProps> = () => {
           )}
         </View>
       </ScrollView>
-
-      {/* Barra de navegación inferior - con los mismos íconos y diseño del código original */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Ionicons name="home-outline" size={30} color="#007bff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
-          <Ionicons name="qr-code-outline" size={30} color="#007bff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
-          <Ionicons name="person-outline" size={30} color="#007bff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Carrito')}>
-          <Ionicons name="cart-outline" size={30} color="#007bff" />
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -173,19 +172,17 @@ const Local: React.FC<StoreDetailsProps> = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#E0F7FA', // Fondo celeste
+    backgroundColor: '#0072ff',
   },
   scrollViewContent: {
-    paddingBottom: 80, // Espacio adicional para el navbar
+    paddingBottom: 80,
   },
   backButton: {
-    marginTop: 30,  // Espacio adicional para el botón de regresar
-    marginBottom: 20,
+    marginTop: 30,
     paddingVertical: 10,
     paddingHorizontal: 15,
-    backgroundColor: '#007bff', // Azul
+    backgroundColor: '#007bff',
     borderRadius: 5,
-    alignSelf: 'flex-start',
   },
   backButtonText: {
     color: '#fff',
@@ -195,16 +192,13 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
     borderRadius: 20,
     marginHorizontal: 20,
     alignItems: 'center',
-    marginBottom: 20,  // Aumenta el margen inferior para separar más de la siguiente sección
+    marginBottom: 20,
   },
   searchInput: {
     marginLeft: 5,
-    fontSize: 16,
     flex: 1,
   },
   storeContainer: {
@@ -212,69 +206,38 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
   },
   storeName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  storeInfo: {
-    fontSize: 16,
-    color: '#666',
-    marginVertical: 5,
-  },
-  storeImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 12,
-    marginBottom: 15,
   },
   productContainer: {
-    marginTop: 30,  // Se aumenta la separación de los productos con la información de la tienda
+    padding: 10,
+  },
+  categoryTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    color: '#333',
   },
   productCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 10,
     elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
   },
   productName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   productDetails: {
     fontSize: 14,
-    color: '#666',
   },
   productPrice: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#007bff',
-  },
-  bottomNav: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 15,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#ddd',
-    height: 60,
-    zIndex: 10,
   },
 });
 
