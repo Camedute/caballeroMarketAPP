@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, TouchableOpacity } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import Modal from 'react-native-modal';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Ionicons } from '@expo/vector-icons';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { firebaseConfig } from '../backend/credenciales';
-import { Ionicons } from '@expo/vector-icons';
-import Cart from '../cart/cart';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
+import { LinearGradient } from 'expo-linear-gradient'; // Importar LinearGradient
 
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
@@ -41,7 +40,6 @@ const QRScanner: React.FC = ({ navigation }: any) => {
     setScanned(true);
     setShowCamera(false);
     setQrData(data);  // Guardamos el ID escaneado
-
     const user = auth.currentUser;
     if (user) {
       console.log(`ID Usuario: ${user.uid}`);
@@ -105,94 +103,123 @@ const QRScanner: React.FC = ({ navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={[styles.tab, !showCamera && styles.activeTab]}
-            onPress={() => setShowCamera(false)}
-          >
-            <Text style={styles.tabText}>Mostrar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, showCamera && styles.activeTab]}
-            onPress={handleShowCamera}
-          >
-            <Text style={styles.tabText}>Escanear</Text>
-          </TouchableOpacity>
-        </View>
-  
-        {!showCamera ? (
-          <View style={styles.qrContainer}>
-            <QRCode
-              value={auth.currentUser?.uid || 'Sin usuario'}
-              size={200}
-              color="black"
-              backgroundColor="white"
-            />
-          </View>
-        ) : (
-          <CameraView
-            onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-            style={StyleSheet.absoluteFillObject}
-          >
-            {scanned && (
-              <Button title="Tap to Scan Again" onPress={() => setScanned(false)} />
-            )}
-            <TouchableOpacity style={styles.backButton} onPress={handleHideCamera}>
-              <Text style={styles.backButtonText}>Regresar</Text>
+    <SafeAreaView style={styles.safeAreaContainer}>
+      {/* Fondo de gradiente azul a celeste */}
+      <LinearGradient colors={['#0099FF', '#66CCFF']} style={styles.gradientBackground}>
+        <View style={styles.container}>
+          {/* Título */}
+          <Text style={styles.title}>Escanea tu compra!</Text>
+
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={[styles.tab, !showCamera && styles.activeTab]}
+              onPress={() => setShowCamera(false)}
+            >
+              <Text style={styles.tabText}>Mostrar</Text>
             </TouchableOpacity>
-          </CameraView>
-        )}
-  
-        <TouchableOpacity style={styles.scanButton} onPress={handleShowCamera}>
-          <Text style={styles.scanButtonText}>Escanear</Text>
-        </TouchableOpacity>
-  
-        <Modal isVisible={modalVisible}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Escaneado con éxito</Text>
-            <Text style={styles.modalText}>{confirmMessage || qrData}</Text>
-            <Button title="Cerrar" onPress={() => setModalVisible(false)} />
+            <TouchableOpacity
+              style={[styles.tab, showCamera && styles.activeTab]}
+              onPress={handleShowCamera}
+            >
+              <Text style={styles.tabText}>Escanear</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-      </View>
-  
-      {/* Aquí añadimos el Navbar */}
+
+          {/* Elementos elevados */}
+          {!showCamera ? (
+            <View style={[styles.qrContainer, styles.elevated]}>
+              <View style={[styles.qrFrame, { borderColor: '#0099FF' }]}>  {/* Cambio de color de borde */}
+                <QRCode
+                  value={auth.currentUser?.uid || 'Sin usuario'}
+                  size={250}  
+                  color="black"
+                  backgroundColor="white"
+                />
+              </View>
+            </View>
+          ) : (
+            <CameraView
+              onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+              style={StyleSheet.absoluteFillObject}
+            >
+              {scanned && (
+                <Button title="Tap to Scan Again" onPress={() => setScanned(false)} />
+              )}
+              <TouchableOpacity style={styles.backButton} onPress={handleHideCamera}>
+                <Text style={styles.backButtonText}>Regresar</Text>
+              </TouchableOpacity>
+            </CameraView>
+          )}
+
+          <TouchableOpacity style={styles.scanButton} onPress={handleShowCamera}>
+            <Text style={styles.scanButtonText}>Escanear</Text>
+          </TouchableOpacity>
+
+          <Modal isVisible={modalVisible}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Escaneado con éxito</Text>
+              <Text style={styles.modalText}>{confirmMessage || qrData}</Text>
+              <Button title="Cerrar" onPress={() => setModalVisible(false)} />
+            </View>
+          </Modal>
+        </View>
+      </LinearGradient>
+
+      {/* Barra de navegación inferior */}
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Ionicons name="home-outline" size={30} color="#333" />
+          <Ionicons name="home-outline" size={30} color="#007bff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
-          <Ionicons name="qr-code-outline" size={30} color="#333" />
+          <Ionicons name="qr-code-outline" size={30} color="#007bff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name="person-outline" size={30} color="#333" />
+          <Ionicons name="person-outline" size={30} color="#007bff" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={viewCart}>
-          <Ionicons name="cart-outline" size={30} color="#333" />
+        <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
+          <Ionicons name="cart-outline" size={30} color="#007bff" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
-  
 };
 
 const styles = StyleSheet.create({
+  safeAreaContainer: {
+    flex: 1,
+  },
+  gradientBackground: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
+    padding: 15,
+    paddingTop: 100, // Aumenté el espacio superior para mover el título más arriba
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 20,
+    color: '#fff',
+    fontFamily: 'Arial', // Fuente más llamativa
+    marginTop: 30, // Aumenté el margen superior para que esté aún más arriba
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
   },
   tab: {
-    padding: 10,
-    borderRadius: 20,
-    marginHorizontal: 5,
-    backgroundColor: '#ccc',
+    padding: 12,
+    borderRadius: 25,
+    marginHorizontal: 8,
+    backgroundColor: '#f0f0f5',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
   },
   activeTab: {
     backgroundColor: '#007AFF',
@@ -204,53 +231,58 @@ const styles = StyleSheet.create({
   qrContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
   },
-  qrText: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginTop: 10,
+  qrFrame: {
+    borderWidth: 5,  // Hacer el borde más grueso
+    borderRadius: 20,
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scanButton: {
     alignSelf: 'center',
     backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 25,
-    marginTop: 20,
+    marginBottom: 30,
   },
   scanButtonText: {
     color: 'white',
+    fontWeight: 'bold',
     fontSize: 18,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 20,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
   },
   modalContent: {
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
-    marginHorizontal: 20,
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   bottomNav: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
     paddingVertical: 10,
+    backgroundColor: '#fff',
     borderTopWidth: 1,
     borderColor: '#ddd',
-    backgroundColor: '#fff',
+    height: 60,
+    zIndex: 10,
   },
-  
+  elevated: {
+    elevation: 5, // Sombra para simular elevación
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
 });
 
 export default QRScanner;
