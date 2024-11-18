@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, KeyboardAvoidingView, ScrollView, Button } from 'react-native';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, where, query, updateDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { firebaseConfig } from '../backend/credenciales';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,10 +10,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { useCart } from './cartContext';
 
+// Definimos el tipo de producto en el carrito
 type CartItem = {
-  nombre: string;
-  cantidad: number;
+  idProducto: string;
+  nombreProducto: string;
+  cantidadProducto: number;
+  precioProducto: number;
+  categoria: string;
+  imagen: string;
+  idDueno: string;
 };
+
 
 type CartProps = {
   route: {
@@ -24,40 +31,105 @@ type CartProps = {
   navigation: any;
 };
 
-const Cart = ({ navigation }: { navigation: any }) => {
-  const [tipoPago, setTipoPago] = useState<string>('efectivo');
-  const { cart, clearCart } = useCart(); // Extraer el carrito y la función para limpiar el carrito
-  console.log(cart);
 
-  const firestore = getFirestore();
-  const auth = getAuth();
-  const user = auth.currentUser;
+  const Cart = ({ navigation }: CartProps) => {
+    const [tipoPago, setTipoPago] = useState<string>('efectivo');
+    const { cart, clearCart } = useCart(); // Extraer el carrito y la función para limpiar el carrito
+    console.log(cart);
+  
+    const firestore = getFirestore();
+    const auth = getAuth();
+    const user = auth.currentUser;
 
-  const viewCart = () => {
-    navigation.navigate('Cart', { cart });
-  };
 
-  const handleCart = async () => {
-    if (Object.keys(cart).length === 0) {
-      Alert.alert('Error', 'No has agregado productos al carrito.');
-    } else {
+    const calculateTotal = () => {
+      return Object.values(cart).reduce((total, product) => {
+        return total + product.precio * product.cantidad; // Sumar el precio * cantidad de cada producto
+      }, 0);
+    };
+
+    const total = calculateTotal();
+  
+    const handleCart = async () => {
+      if (Object.keys(cart).length === 0) {
+        Alert.alert('Error', 'No has agregado productos al carrito.');
+        return;
+      }
+    
+      const firestore = getFirestore();
+      const auth = getAuth();
+      const user = auth.currentUser;
+    
+      // Crear un array de productos para el pedido
+      const listaPedidos = Object.values(cart).map((item) => ({
+        idProducto: item.id,
+        nombreProducto: item.nombreProducto,
+        cantidadProducto: item.cantidad,
+        precioProducto: item.precio,
+        categoria: item.categoria,
+        idDueno: item.idDueno,
+      }));
+    
+      // Crear objeto de datos a enviar
+      const pedidoData = {
+        idCliente: user?.uid,
+        idDueno: Object.values(cart)[0]?.idDueno,
+        listaPedidos: listaPedidos,
+        metodoPago: tipoPago,
+        fecha: new Date(),
+        realizado: false,
+      };
+    
       try {
         const pedidoRef = collection(firestore, 'Pedidos');
-        await addDoc(pedidoRef, {
-          listaPedidos: cart,
-          idCliente: user?.uid,
-          metodoPago: tipoPago,
-          fecha: new Date(),
-          realizado: false,
-        });
+        await addDoc(pedidoRef, pedidoData);
+    
+        // **Actualizar contador por categoría**
+        const contadorRef = collection(firestore, 'Contador');
+    
+        // Iterar por cada producto del carrito
+        for (const item of Object.values(cart)) {
+          const categoria = item.categoria;
+          const cantidad = item.cantidad;
+          const idDueno = item.idDueno;
+    
+          // Verificar si ya existe un contador para esta categoría y dueño
+          const querySnapshot = await getDocs(
+            query(contadorRef, where('idDueno', '==', idDueno), where('categoria', '==', categoria))
+          );
+    
+          if (!querySnapshot.empty) {
+            // Si existe, actualizar el contador
+            const docRef = querySnapshot.docs[0].ref;
+            const docData = querySnapshot.docs[0].data();
+            const nuevaCantidad = (docData.cantidad || 0) + cantidad;
+    
+            await updateDoc(docRef, {
+              cantidad: nuevaCantidad,
+            });
+          } else {
+            // Si no existe, crear un nuevo documento para esta categoría
+            const contadorData = {
+              idDueno: idDueno,
+              categoria: categoria,
+              cantidad: cantidad,
+            };
+    
+            await addDoc(contadorRef, contadorData);
+          }
+        }
+    
         Alert.alert('Pedido enviado correctamente');
-        clearCart(); // Limpiar el carrito después de enviar el pedido
+        clearCart();
         navigation.navigate('Home');
       } catch (error: any) {
         console.log('Error al enviar el pedido:', error.message);
+        Alert.alert('Error', 'Hubo un problema al enviar el pedido.');
       }
-    }
-  };
+    };
+    
+    
+    
 
 
   return (
@@ -85,13 +157,23 @@ const Cart = ({ navigation }: { navigation: any }) => {
                           contentContainerStyle={styles.productList}
                           renderItem={({ item: [productId, product] }) => (
                             <View style={styles.productCard}>
-                              <Text style={styles.productText}>Producto: {product.nombreProducto}</Text>
+                              <Text style={styles.productText}>{product.nombreProducto}</Text>
                               <Text style={styles.productText}>Cantidad: {product.cantidad}</Text>
+                              <Text style={styles.productText}>precio: ${product.precio}</Text>
+                              <Button title='Editar Cantidad'></Button>
+                              <Button title='borrar'></Button>
                             </View>
                           )}
                         />
                   )}
                 </View>
+
+                {Object.keys(cart).length > 0 && (
+                <View style={styles.totalSection}>
+                  <Text style={styles.totalText}>Total: ${total}</Text>
+                </View>
+              )}
+
               {/* Método de pago */}
               <View style={styles.paymentSection}>
                 <Text style={styles.paymentLabel}>Método de pago:</Text>
@@ -128,7 +210,7 @@ const Cart = ({ navigation }: { navigation: any }) => {
           <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
             <Ionicons name="person-outline" size={30} color="#007bff" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={viewCart}>
+          <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
             <Ionicons name="cart-outline" size={30} color="#007bff" />
           </TouchableOpacity>
         </View>
@@ -239,6 +321,15 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#ddd',
     width: '100%',
+  },
+  totalSection: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  totalText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

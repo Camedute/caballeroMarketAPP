@@ -125,7 +125,7 @@ const Local: React.FC<StoreDetailsProps> = () => {
     const cartProduct = {
       idProducto: product.idProducto,
       nombreProducto: product.nombreProducto,
-      cantidadProducto: 1, // Agregamos inicialmente con cantidad 1
+      cantidadProducto: 1, // Inicializamos con cantidad 1
       precioProducto: parseFloat(product.precioProducto), // Convertimos a número
       categoria: product.Categoria,
       imagen: product.imagen,
@@ -133,9 +133,12 @@ const Local: React.FC<StoreDetailsProps> = () => {
     };
 
     addToCart(cartProduct);
-    //Alert.alert('Producto agregado', `${product.nombreProducto} ha sido agregado al carrito.`);
-    Alert.alert(product.Categoria,product.idDueno);
-  };
+
+    // Mostrar todos los datos del producto agregado al carrito
+    Alert.alert("¡Agregado!", `El producto ${cartProduct.nombreProducto} fue agregado con éxito al carrito!`);
+
+};
+;
 
   const viewCart = () => {
     navigation.navigate('Cart');
