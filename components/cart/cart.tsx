@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, KeyboardAvoidingView, ScrollView, Button } from 'react-native';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc, getDocs, where, query, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, where, query, updateDoc, getDoc, doc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { firebaseConfig } from '../backend/credenciales';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -84,49 +84,73 @@ type CartProps = {
         const pedidoRef = collection(firestore, 'Pedidos');
         await addDoc(pedidoRef, pedidoData);
     
-        // **Actualizar contador por categoría**
-        const contadorRef = collection(firestore, 'Contador');
+        const idDueno = Object.values(cart)[0]?.idDueno;
+        const inventarioRef = doc(firestore, 'Inventario', idDueno);
     
-        // Iterar por cada producto del carrito
+        // Obtener el documento del inventario del dueño
+        const inventarioSnapshot = await getDoc(inventarioRef);
+    
+        if (!inventarioSnapshot.exists()) {
+          Alert.alert('Error', 'Inventario no encontrado.');
+          return;
+        }
+    
+        // Datos del inventario
+        const inventarioData = inventarioSnapshot.data();
+        const productos = inventarioData.productos || [];
+    
+        // Iterar sobre los productos del carrito para actualizar el inventario
         for (const item of Object.values(cart)) {
-          const categoria = item.categoria;
-          const cantidad = item.cantidad;
-          const idDueno = item.idDueno;
+          const idProducto = item.id;
+          const cantidadPedido = item.cantidad;
     
-          // Verificar si ya existe un contador para esta categoría y dueño
-          const querySnapshot = await getDocs(
-            query(contadorRef, where('idDueno', '==', idDueno), where('categoria', '==', categoria))
-          );
+          // Buscar el producto en el array de productos del inventario
+          let productoEncontrado = false;
     
-          if (!querySnapshot.empty) {
-            // Si existe, actualizar el contador
-            const docRef = querySnapshot.docs[0].ref;
-            const docData = querySnapshot.docs[0].data();
-            const nuevaCantidad = (docData.cantidad || 0) + cantidad;
+          for (let i = 0; i < productos.length; i++) {
+            const producto = productos[i];
     
-            await updateDoc(docRef, {
-              cantidad: nuevaCantidad,
-            });
-          } else {
-            // Si no existe, crear un nuevo documento para esta categoría
-            const contadorData = {
-              idDueno: idDueno,
-              categoria: categoria,
-              cantidad: cantidad,
-            };
+            if (producto.id === idProducto) {
+              // Producto encontrado
+              const cantidadDisponible = parseInt(producto.cantidadProducto);
+              const nuevaCantidad = cantidadDisponible - cantidadPedido;
     
-            await addDoc(contadorRef, contadorData);
+              if (nuevaCantidad >= 0) {
+                // Actualizar la cantidad en el array
+                productos[i].cantidadProducto = nuevaCantidad.toString();
+    
+                // Guardar los cambios en Firestore
+                await updateDoc(inventarioRef, { productos });
+                productoEncontrado = true;
+                console.log(`Cantidad actualizada para producto ID ${idProducto}: ${nuevaCantidad}`);
+              } else {
+                Alert.alert(
+                  'Error',
+                  `La cantidad solicitada para el producto ${producto.nombreProducto} excede el inventario disponible.`
+                );
+                return;
+              }
+    
+              break; // Salir del bucle una vez encontrado el producto
+            }
+          }
+    
+          if (!productoEncontrado) {
+            console.log(`Producto con id ${idProducto} no encontrado en el inventario.`);
           }
         }
     
-        Alert.alert('Pedido enviado correctamente');
+        Alert.alert('Pedido enviado exitosamente.');
         clearCart();
         navigation.navigate('Home');
       } catch (error: any) {
-        console.log('Error al enviar el pedido:', error.message);
+        console.error('Error al enviar el pedido y actualizar el inventario:', error.message);
         Alert.alert('Error', 'Hubo un problema al enviar el pedido.');
       }
     };
+    
+    
+    
     
     
     
