@@ -15,6 +15,8 @@ import ResetPassword from './components/resetPassword/resetPassword';
 import Local from './components/local/local';
 import SearchResults from './components/search/search';
 
+import { CartProvider } from './components/cart/cartContext';
+
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -46,6 +48,7 @@ const App = () => {
   }
 
   return (
+    <CartProvider>
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
@@ -68,6 +71,7 @@ const App = () => {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+    </CartProvider>
   );
 };
 

@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { handleStoresSearch } from '../backend/firebase';
 import { LinearGradient } from 'expo-linear-gradient'; // Importa LinearGradient
+import { useCart } from '../cart/cartContext';
 
 // Inicializa Firebase solo si aún no ha sido inicializado
 if (!getApps().length) {
@@ -31,14 +32,17 @@ type StoreData = {
 };
 
 type ProductData = {
+  idProducto: string;
   nombreProducto: string;
   cantidadProducto: string;
   Categoria: string;
   precioProducto: string;
   imagen: string;
+  idDueno: string; // Añadimos el idDueno aquí para pasarlo al carrito
 };
 
 const Local: React.FC<StoreDetailsProps> = () => {
+  const { addToCart } = useCart();
   const [storeData, setStoreData] = useState<StoreData | null>(null);
   const [products, setProducts] = useState<ProductData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,14 +75,16 @@ const Local: React.FC<StoreDetailsProps> = () => {
           const inventoryData = inventoryDoc.data();
           if (inventoryData && Array.isArray(inventoryData.productos)) {
             const productos = inventoryData.productos.map((producto: any) => ({
+              idProducto: producto.id,
               nombreProducto: producto.nombreProducto,
               cantidadProducto: producto.cantidadProducto,
               Categoria: producto.Categoria,
               precioProducto: producto.precioProducto,
               imagen: producto.imagen,
+              idDueno: storeId, // Usamos el storeId como idDueno
             }));
             setProducts(productos);
-            
+
             // Agrupar los productos por categoría
             const grouped = productos.reduce((acc: { [key: string]: ProductData[] }, product) => {
               const category = product.Categoria || 'Sin Categoría';
@@ -88,7 +94,7 @@ const Local: React.FC<StoreDetailsProps> = () => {
               acc[category].push(product);
               return acc;
             }, {});
-            
+
             setGroupedProducts(grouped);
           }
         }
@@ -102,8 +108,8 @@ const Local: React.FC<StoreDetailsProps> = () => {
   }, [storeId]);
 
   const handleSearch = async () => {
-    if (searchQuery === "") {
-      Alert.alert("Error","Por favor ingrese un producto");
+    if (searchQuery === '') {
+      Alert.alert('Error', 'Por favor ingrese un producto');
     } else {
       try {
         const results = await handleStoresSearch(storeId, searchQuery);
@@ -113,6 +119,28 @@ const Local: React.FC<StoreDetailsProps> = () => {
       }
     }
   };
+
+  // Función actualizada para agregar al carrito con todos los datos
+  const handleAddToCart = (product: ProductData) => {
+    const cartProduct = {
+      idProducto: product.idProducto,
+      nombreProducto: product.nombreProducto,
+      cantidadProducto: 1, // Agregamos inicialmente con cantidad 1
+      precioProducto: parseFloat(product.precioProducto), // Convertimos a número
+      categoria: product.Categoria,
+      imagen: product.imagen,
+      idDueno: product.idDueno,
+    };
+
+    addToCart(cartProduct);
+    //Alert.alert('Producto agregado', `${product.nombreProducto} ha sido agregado al carrito.`);
+    Alert.alert(product.Categoria,product.idDueno);
+  };
+
+  const viewCart = () => {
+    navigation.navigate('Cart');
+  };
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -158,7 +186,7 @@ const Local: React.FC<StoreDetailsProps> = () => {
                       <Text style={styles.productName}>{product.nombreProducto}</Text>
                       <Text style={styles.productDetails}>{`Cantidad: ${product.cantidadProducto}`}</Text>
                       <Text style={styles.productPrice}>{`Precio: $${product.precioProducto}`}</Text>
-                      <TouchableOpacity style={styles.addButton}>
+                      <TouchableOpacity onPress={() => handleAddToCart(product)} style={styles.addButton}>
                         <Text style={styles.addButtonText}>Agregar producto</Text>
                       </TouchableOpacity>
                     </View>

@@ -3,9 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, ScrollVi
 import { handleStoreSearch, handleStoresHome } from '../backend/firebase';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient'; // Importar el gradiente
-
-// ... (resto del código)
+import { LinearGradient } from 'expo-linear-gradient';
 
 const Home = ({ navigation }: any) => {
   const [cart, setCart] = useState<any>({});

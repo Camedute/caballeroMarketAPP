@@ -8,6 +8,7 @@ import { firebaseConfig } from '../backend/credenciales';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
+import { useCart } from './cartContext';
 
 type CartItem = {
   nombre: string;
@@ -23,25 +24,21 @@ type CartProps = {
   navigation: any;
 };
 
-const Cart = ({ route, navigation }: CartProps) => {
-  const [cartGo, setCartGo] = useState({});
+const Cart = ({ navigation }: { navigation: any }) => {
   const [tipoPago, setTipoPago] = useState<string>('efectivo');
-  const { cart } = route.params;
-
-  if (getApps().length === 0) {
-    initializeApp(firebaseConfig);
-  }
+  const { cart, clearCart } = useCart(); // Extraer el carrito y la función para limpiar el carrito
+  console.log(cart);
 
   const firestore = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
 
   const viewCart = () => {
-    navigation.navigate('Cart', { cartGo });
+    navigation.navigate('Cart', { cart });
   };
 
   const handleCart = async () => {
-    if (Object.entries(cart).length <= 0) {
+    if (Object.keys(cart).length === 0) {
       Alert.alert('Error', 'No has agregado productos al carrito.');
     } else {
       try {
@@ -54,12 +51,14 @@ const Cart = ({ route, navigation }: CartProps) => {
           realizado: false,
         });
         Alert.alert('Pedido enviado correctamente');
+        clearCart(); // Limpiar el carrito después de enviar el pedido
         navigation.navigate('Home');
       } catch (error: any) {
         console.log('Error al enviar el pedido:', error.message);
       }
     }
   };
+
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -74,27 +73,25 @@ const Cart = ({ route, navigation }: CartProps) => {
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                 <Ionicons name="arrow-back" size={24} color="#007bff" />
               </TouchableOpacity>
-
               {/* Productos en el Carrito */}
-              <View style={styles.cartSection}>
-                <Text style={styles.sectionTitle}>Productos en el Carrito</Text>
-                {Object.keys(cart).length === 0 ? (
-                  <Text>No hay productos en el carrito.</Text>
-                ) : (
-                  <FlatList
-                    data={Object.entries(cart)}
-                    keyExtractor={([productId]) => productId}
-                    contentContainerStyle={styles.productList}
-                    renderItem={({ item: [productId, product] }) => (
-                      <View style={styles.productCard}>
-                        <Text style={styles.productText}>Producto: {product.nombre}</Text>
-                        <Text style={styles.productText}>Cantidad: {product.cantidad}</Text>
-                      </View>
-                    )}
-                  />
-                )}
-              </View>
-
+                <View style={styles.cartSection}>
+                  <Text style={styles.sectionTitle}>Productos en el Carrito</Text>
+                  {Object.keys(cart).length === 0 ? (
+                    <Text>No hay productos en el carrito.</Text>
+                  ) : (
+                    <FlatList
+                          data={Object.entries(cart)}
+                          keyExtractor={([productId]) => productId}
+                          contentContainerStyle={styles.productList}
+                          renderItem={({ item: [productId, product] }) => (
+                            <View style={styles.productCard}>
+                              <Text style={styles.productText}>Producto: {product.nombreProducto}</Text>
+                              <Text style={styles.productText}>Cantidad: {product.cantidad}</Text>
+                            </View>
+                          )}
+                        />
+                  )}
+                </View>
               {/* Método de pago */}
               <View style={styles.paymentSection}>
                 <Text style={styles.paymentLabel}>Método de pago:</Text>
