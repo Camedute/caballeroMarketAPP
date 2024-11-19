@@ -4,7 +4,7 @@ import { Camera, CameraView } from 'expo-camera';
 import Modal from 'react-native-modal';
 import { Ionicons } from '@expo/vector-icons';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { firebaseConfig } from '../backend/credenciales';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -65,23 +65,53 @@ const QRScanner: React.FC = ({ navigation }: any) => {
 
   const confirmOrder = async (orderId: string) => {
     const user = auth.currentUser;
-
+  
     if (!user) {
       setConfirmMessage('No hay usuario autenticado.');
       setModalVisible(true);
       return;
     }
-
+  
     try {
       const orderRef = doc(firestore, 'Pedidos', orderId);
       const orderDoc = await getDoc(orderRef);
-
+  
       if (orderDoc.exists()) {
         const orderData = orderDoc.data();
-
+  
         if (orderData.idCliente === user.uid) {
+          const total = orderData.total; // Extraer el total del pedido
+          const idDueno = orderData.idDueno; // Extraer el idDueno del pedido
+  
+          if (typeof total !== 'number' || !idDueno) {
+            setConfirmMessage('El pedido no tiene datos válidos (total o idDueno).');
+            setModalVisible(true);
+            return;
+          }
+  
+          // Actualizar el estado del pedido a realizado
           await updateDoc(orderRef, { realizado: true });
-          setConfirmMessage('Pedido confirmado con éxito.');
+  
+          // Referencia a la colección de Ventas del dueño
+          const ventasRef = doc(firestore, 'Ventas', idDueno);
+          const ventasSnapshot = await getDoc(ventasRef);
+  
+          if (ventasSnapshot.exists()) {
+            // Actualizar el valor de gananciaTotal
+            const ventasData = ventasSnapshot.data();
+            const nuevaGananciaTotal = (ventasData.gananciaTotal || 0) + total;
+  
+            await updateDoc(ventasRef, {
+              gananciaTotal: nuevaGananciaTotal,
+            });
+          } else {
+            // Crear un nuevo documento si no existe
+            await setDoc(ventasRef, {
+              gananciaTotal: total,
+            });
+          }
+  
+          setConfirmMessage('Pedido confirmado y registrado en Ventas con éxito.');
         } else {
           setConfirmMessage('El pedido no pertenece a este usuario.');
         }
@@ -89,11 +119,13 @@ const QRScanner: React.FC = ({ navigation }: any) => {
         setConfirmMessage('El pedido no existe.');
       }
     } catch (error) {
+      console.error('Error al confirmar el pedido:', error);
       setConfirmMessage('Error en la consulta.');
     } finally {
       setModalVisible(true);
     }
   };
+  
 
   if (hasPermission === null) {
     return <Text>Solicitando permisos para la cámara...</Text>;

@@ -70,6 +70,11 @@ type CartProps = {
         idDueno: item.idDueno,
       }));
     
+      // Calcular el total
+      const total = Object.values(cart).reduce((sum, item) => {
+        return sum + item.precio * item.cantidad;
+      }, 0);
+    
       // Crear objeto de datos a enviar
       const pedidoData = {
         idCliente: user?.uid,
@@ -77,6 +82,7 @@ type CartProps = {
         listaPedidos: listaPedidos,
         metodoPago: tipoPago,
         fecha: new Date(),
+        total: total, // **Agregar el total aquí**
         realizado: false,
       };
     
@@ -148,6 +154,7 @@ type CartProps = {
         Alert.alert('Error', 'Hubo un problema al enviar el pedido.');
       }
     };
+    
     
     
     
