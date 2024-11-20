@@ -111,7 +111,7 @@ const QRScanner: React.FC = ({ navigation }: any) => {
             });
           }
   
-          setConfirmMessage('Pedido confirmado y registrado en Ventas con éxito.');
+          setConfirmMessage('Pedido confirmado.');
         } else {
           setConfirmMessage('El pedido no pertenece a este usuario.');
         }

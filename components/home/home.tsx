@@ -95,25 +95,7 @@ const Home = ({ navigation }: any) => {
                   <Text style={styles.storeName}>{item.nombreLocal}</Text>
 
                   {/* Productos en scroll horizontal */}
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productList}>
-                    {Array.isArray(item.productos) && item.productos.length > 0 ? (
-                      item.productos.map((product) => (
-                        <View key={product.id} style={styles.productCard}>
-                          <Text style={styles.productName}>{product.nombreProducto}</Text>
-                          <Text style={styles.productPrice}>${product.precioProducto}</Text>
-                          <TouchableOpacity
-                            style={styles.addButton}
-                            onPress={() => addToCart(product)}
-                          >
-                            <Text style={styles.addButtonText}>+</Text>
-                          </TouchableOpacity>
-                        </View>
-                      ))
-                    ) : (
-                      <Text>No hay productos disponibles</Text> // Mensaje alternativo si no hay productos
-                    )}
-                  </ScrollView>
-
+                  
                   {/* Botón "Ver Local" */}
                   <TouchableOpacity style={styles.viewButton} onPress={() => viewStore(item.id)}>
                     <Text style={styles.viewButtonText}>Ver Local</Text>
