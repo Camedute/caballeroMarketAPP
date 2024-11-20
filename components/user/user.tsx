@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TextInput, StyleSheet, Alert, TouchableOpacity, ActivityIndicator, ImageBackground } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { getAuth, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,18 +16,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const User = ({ navigation }: any) => {
-  const [cart, setCart] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     nombreUsuario: '',
     correoUsuario: '',
-    descripcion: '', // Campo de descripción
+    descripcion: '',
   });
-  const [loading, setLoading] = useState(true); // Estado de carga
-
-  const viewCart = () => {
-    navigation.navigate('Cart', { cart });
-  };
+  const [loading, setLoading] = useState(true);
 
   const auth = getAuth();
   const firestore = getFirestore();
@@ -30,7 +34,7 @@ const User = ({ navigation }: any) => {
       await AsyncStorage.removeItem('userToken');
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }], // Redirige a la pantalla de Login
+        routes: [{ name: 'Login' }],
       });
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
@@ -39,21 +43,25 @@ const User = ({ navigation }: any) => {
   };
 
   const fetchUserData = async () => {
-    if (user) {
-      const userDocRef = doc(firestore, 'Clientes', user.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        setFormData({
-          nombreUsuario: userData.nombreUsuario || '',
-          correoUsuario: userData.correoUsuario || '',
-          descripcion: userData.descripcion || '', // Traemos también la descripción
-        });
-      } else {
-        console.log('No se encontraron datos del usuario');
+    if (user && user.uid) {
+      try {
+        const userDocRef = doc(firestore, 'Clientes', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setFormData({
+            nombreUsuario: userData.nombreUsuario || '',
+            correoUsuario: userData.correoUsuario || '',
+            descripcion: userData.descripcion || '',
+          });
+        }
+      } catch (error) {
+        console.error('Error al obtener datos del usuario:', error);
       }
-      setLoading(false); // Cambiar a false cuando los datos sean cargados
+    } else {
+      console.log('El usuario no está autenticado');
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -67,230 +75,192 @@ const User = ({ navigation }: any) => {
   const handleEditClick = async () => {
     if (isEditing) {
       try {
-        const userDocRef = doc(firestore, 'Clientes', user?.uid);
-        await updateDoc(userDocRef, {
-          nombreUsuario: formData.nombreUsuario,
-          descripcion: formData.descripcion, // Guardamos también la descripción
-        });
-        Alert.alert('Actualización exitosa', 'Los datos del perfil han sido actualizados');
+        if (user && user.uid) {
+          const userDocRef = doc(firestore, 'Clientes', user.uid);
+          await updateDoc(userDocRef, {
+            nombreUsuario: formData.nombreUsuario,
+            correoUsuario: formData.correoUsuario,
+            descripcion: formData.descripcion,
+          });
+          Alert.alert('Actualización exitosa', 'Los datos del perfil han sido actualizados');
+        }
       } catch (error) {
         console.log('Error al actualizar los datos:', error);
         Alert.alert('Error', 'Hubo un problema al actualizar los datos');
       }
     }
-    setIsEditing(!isEditing); // Alterna entre edición y vista
+    setIsEditing(!isEditing);
+  };
+
+  const viewCart = () => {
+    try {
+      navigation.navigate('Cart'); // Aseguramos que la navegación esté correctamente definida.
+    } catch (error) {
+      console.error('Error al navegar a Cart:', error);
+      Alert.alert('Error', 'No se pudo acceder al carrito');
+    }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Imagen de fondo con gradiente */}
-      <ImageBackground
-        source={require('../../assets/abarrotes.jpg')} // Asegúrate de que la imagen esté en la carpeta correcta
-        style={styles.imageBackground}
-      >
-        {/* Gradiente azul encima de la imagen de fondo */}
-        <LinearGradient
-          colors={['rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 255, 0.5)']} // Colores del gradiente
-          style={styles.imageGradient}
-        />
-      </ImageBackground>
-
-      {/* Botón de Cerrar sesión, posicionado encima de la imagen de fondo */}
+    <LinearGradient
+      colors={['#0099FF', '#66CCFF']}
+      style={styles.container}
+    >
+      {/* Botón de cerrar sesión */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={30} color="#fff" />
       </TouchableOpacity>
 
-      {/* Card para el perfil */}
-      <View style={styles.cardContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#007bff" />
-        ) : (
-          <View style={styles.card}>
-            <View style={styles.profileImageContainer}>
+      {/* Card de perfil centrado */}
+      <View style={styles.centerContent}>
+        <View style={styles.card}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#007bff" />
+          ) : (
+            <>
               <Image
-                source={require('../../assets/profile.jpg')} // Asegúrate de que la imagen esté en la carpeta correcta
+                source={require('../../assets/profile.jpg')}
                 style={styles.profileImage}
               />
-            </View>
+              <View style={styles.profileDetails}>
+                <View style={styles.profileField}>
+                  <Text style={styles.label}>Nombre:</Text>
+                  {isEditing ? (
+                    <TextInput
+                      style={styles.input}
+                      value={formData.nombreUsuario}
+                      onChangeText={(text) => handleInputChange('nombreUsuario', text)}
+                    />
+                  ) : (
+                    <Text style={styles.text}>{formData.nombreUsuario}</Text>
+                  )}
+                </View>
 
-            <View style={styles.profileDetails}>
-              {/* Nombre */}
-              <View style={styles.profileField}>
-                <Text style={styles.label}>Nombre:</Text>
-                {isEditing ? (
-                  <TextInput
-                    style={styles.input}
-                    value={formData.nombreUsuario}
-                    onChangeText={(text) => handleInputChange('nombreUsuario', text)}
-                  />
-                ) : (
-                  <Text style={styles.text}>{formData.nombreUsuario}</Text>
-                )}
+                <View style={styles.profileField}>
+                  <Text style={styles.label}>Email:</Text>
+                  {isEditing ? (
+                    <TextInput
+                      style={styles.input}
+                      value={formData.correoUsuario}
+                      onChangeText={(text) => handleInputChange('correoUsuario', text)}
+                    />
+                  ) : (
+                    <Text style={styles.text}>{formData.correoUsuario}</Text>
+                  )}
+                </View>
+
+                <View style={styles.profileField}>
+                  <Text style={styles.label}>Descripción:</Text>
+                  {isEditing ? (
+                    <TextInput
+                      style={styles.input}
+                      value={formData.descripcion}
+                      onChangeText={(text) => handleInputChange('descripcion', text)}
+                    />
+                  ) : (
+                    <Text style={styles.text}>{formData.descripcion}</Text>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={handleEditClick}
+                >
+                  <Text style={styles.editButtonText}>{isEditing ? 'Guardar' : 'Editar'}</Text>
+                </TouchableOpacity>
               </View>
-
-              {/* Email */}
-              <View style={styles.profileField}>
-                <Text style={styles.label}>Email:</Text>
-                <Text style={styles.text}>{formData.correoUsuario}</Text>
-              </View>
-
-              {/* Descripción */}
-              <View style={styles.profileField}>
-                <Text style={styles.label}>Descripción:</Text>
-                {isEditing ? (
-                  <TextInput
-                    style={styles.input}
-                    value={formData.descripcion}
-                    onChangeText={(text) => handleInputChange('descripcion', text)}
-                  />
-                ) : (
-                  <Text style={styles.text}>{formData.descripcion}</Text>
-                )}
-              </View>
-
-              {/* Botón para editar o guardar */}
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={handleEditClick}
-              >
-                <Text style={styles.editButtonText}>{isEditing ? 'Guardar' : 'Editar'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+            </>
+          )}
+        </View>
       </View>
 
-      {/* Barra de navegación inferior */}
+      {/* Navbar inferior */}
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Ionicons name="home-outline" size={30} color="#007bff" />
+          <Ionicons name="home-outline" size={30} color="#0072ff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('QRScanner')}>
-          <Ionicons name="qr-code-outline" size={30} color="#007bff" />
+          <Ionicons name="qr-code-outline" size={30} color="#0072ff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name="person-outline" size={30} color="#007bff" />
+          <Ionicons name="person-outline" size={30} color="#0072ff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={viewCart}>
-          <Ionicons name="cart-outline" size={30} color="#007bff" />
+          <Ionicons name="cart-outline" size={30} color="#0072ff" />
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0072ff',
+    justifyContent: 'space-between',
   },
-  imageBackground: {
-    width: '100%',
-    height: '40%', // Ajustamos la altura del fondo de la imagen
-    position: 'absolute', // Usamos absolute para que no interfiera con el contenido
-    top: 0,
-    left: 0,
-    zIndex: -1, // Esto asegura que la imagen de fondo no bloquee otros componentes
-  },
-  imageGradient: {
+  centerContent: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    paddingTop: 20,
-    paddingRight: 20,
-    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoutButton: {
-    backgroundColor: '#ff3b30', // Rojo
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    backgroundColor: '#ff5252',
     padding: 10,
     borderRadius: 50,
-    position: 'absolute', // Ajusta la posición del botón
-    top: 40, // Posición ajustada para estar justo debajo del borde superior
-    right: 20,
-    zIndex: 10, // Aseguramos que esté por encima de la imagen de fondo
-  },
-  cardContainer: {
-    flex: 1,
-    justifyContent: 'center', // Centra el cuadro en la pantalla
-    alignItems: 'center',
-    marginTop: 80, // Ajuste para que el contenido no se superponga con el fondo
-    zIndex: 1, // El cuadro debe estar encima del fondo
   },
   card: {
     width: '90%',
     backgroundColor: '#fff',
     borderRadius: 15,
     padding: 20,
-    alignItems: 'center', // Alineamos el contenido al centro
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     elevation: 5,
   },
-  profileImageContainer: {
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: 'center',
     marginBottom: 20,
   },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#0072ff',
-  },
-  profileDetails: {
-    width: '100%',
-    alignItems: 'center',
-  },
+  profileDetails: {},
   profileField: {
     marginBottom: 15,
-    width: '100%',
   },
   label: {
-    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,
   },
   input: {
-    padding: 10,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
+    padding: 10,
     backgroundColor: '#f9f9f9',
-    fontSize: 15,
-    width: '100%',
   },
   text: {
-    fontSize: 16,
     color: '#555',
   },
   editButton: {
-    marginTop: 20,
-    backgroundColor: '#0072ff',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '100%',
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
   },
   editButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    textAlign: 'center',
   },
   bottomNav: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 15,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#ddd',
-    height: 60,
-    zIndex: 10, // Esto asegura que la barra de navegación esté por encima de otros elementos
+    paddingVertical: 15,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    elevation: 5,
   },
 });
 
