@@ -9,7 +9,7 @@ import { getAuth } from 'firebase/auth';
 import { firebaseConfig } from '../backend/credenciales';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
-import { LinearGradient } from 'expo-linear-gradient'; // Importar LinearGradient
+import { LinearGradient } from 'expo-linear-gradient';
 
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
@@ -21,7 +21,7 @@ const QRScanner: React.FC = ({ navigation }: any) => {
   const [scanned, setScanned] = useState<boolean>(false);
   const [showCamera, setShowCamera] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [qrData, setQrData] = useState<string>('');  // Para almacenar el ID escaneado
+  const [qrData, setQrData] = useState<string>('');
   const [confirmMessage, setConfirmMessage] = useState<string>('');
 
   useEffect(() => {
@@ -65,52 +65,48 @@ const QRScanner: React.FC = ({ navigation }: any) => {
 
   const confirmOrder = async (orderId: string) => {
     const user = auth.currentUser;
-  
+
     if (!user) {
       setConfirmMessage('No hay usuario autenticado.');
       setModalVisible(true);
       return;
     }
-  
+
     try {
       const orderRef = doc(firestore, 'Pedidos', orderId);
       const orderDoc = await getDoc(orderRef);
-  
+
       if (orderDoc.exists()) {
         const orderData = orderDoc.data();
-  
+
         if (orderData.idCliente === user.uid) {
-          const total = orderData.total; // Extraer el total del pedido
-          const idDueno = orderData.idDueno; // Extraer el idDueno del pedido
-  
+          const total = orderData.total;
+          const idDueno = orderData.idDueno;
+
           if (typeof total !== 'number' || !idDueno) {
             setConfirmMessage('El pedido no tiene datos válidos (total o idDueno).');
             setModalVisible(true);
             return;
           }
-  
-          // Actualizar el estado del pedido a realizado
+
           await updateDoc(orderRef, { realizado: true });
-  
-          // Referencia a la colección de Ventas del dueño
+
           const ventasRef = doc(firestore, 'Ventas', idDueno);
           const ventasSnapshot = await getDoc(ventasRef);
-  
+
           if (ventasSnapshot.exists()) {
-            // Actualizar el valor de gananciaTotal
             const ventasData = ventasSnapshot.data();
             const nuevaGananciaTotal = (ventasData.gananciaTotal || 0) + total;
-  
+
             await updateDoc(ventasRef, {
               gananciaTotal: nuevaGananciaTotal,
             });
           } else {
-            // Crear un nuevo documento si no existe
             await setDoc(ventasRef, {
               gananciaTotal: total,
             });
           }
-  
+
           setConfirmMessage('Pedido confirmado.');
         } else {
           setConfirmMessage('El pedido no pertenece a este usuario.');
@@ -125,7 +121,6 @@ const QRScanner: React.FC = ({ navigation }: any) => {
       setModalVisible(true);
     }
   };
-  
 
   if (hasPermission === null) {
     return <Text>Solicitando permisos para la cámara...</Text>;
@@ -136,10 +131,8 @@ const QRScanner: React.FC = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
-      {/* Fondo de gradiente azul a celeste */}
       <LinearGradient colors={['#0099FF', '#66CCFF']} style={styles.gradientBackground}>
         <View style={styles.container}>
-          {/* Título */}
           <Text style={styles.title}>Escanea tu compra!</Text>
 
           <View style={styles.header}>
@@ -160,10 +153,10 @@ const QRScanner: React.FC = ({ navigation }: any) => {
           {/* Elementos elevados */}
           {!showCamera ? (
             <View style={[styles.qrContainer, styles.elevated]}>
-              <View style={[styles.qrFrame, { borderColor: '#0099FF' }]}>  {/* Cambio de color de borde */}
+              <View style={[styles.qrFrame, { borderColor: '#0099FF' }]}>
                 <QRCode
                   value={auth.currentUser?.uid || 'Sin usuario'}
-                  size={250}  
+                  size={250}
                   color="black"
                   backgroundColor="white"
                 />
@@ -177,7 +170,7 @@ const QRScanner: React.FC = ({ navigation }: any) => {
               {scanned && (
                 <Button title="Tap to Scan Again" onPress={() => setScanned(false)} />
               )}
-              <TouchableOpacity style={styles.backButton} onPress={handleHideCamera}>
+              <TouchableOpacity style={[styles.backButton, styles.elevated]} onPress={handleHideCamera}>
                 <Text style={styles.backButtonText}>Regresar</Text>
               </TouchableOpacity>
             </CameraView>
@@ -227,7 +220,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 15,
-    paddingTop: 100, // Aumenté el espacio superior para mover el título más arriba
+    paddingTop: 100,
   },
   title: {
     fontSize: 30,
@@ -235,13 +228,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 20,
     color: '#fff',
-    fontFamily: 'Arial', // Fuente más llamativa
-    marginTop: 30, // Aumenté el margen superior para que esté aún más arriba
+    fontFamily: 'Arial',
+    marginTop: 30,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 30,
+    gap: 20,  // Aumento el espacio entre los botones del navbar
   },
   tab: {
     padding: 12,
@@ -262,58 +256,55 @@ const styles = StyleSheet.create({
   },
   qrContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
   },
   qrFrame: {
-    borderWidth: 5,  // Hacer el borde más grueso
-    borderRadius: 20,
-    padding: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 5,
+    borderRadius: 15,
+    padding: 10,
   },
   scanButton: {
-    alignSelf: 'center',
     backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 25,
-    marginBottom: 30,
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginTop: 20,
+    elevation: 3,
   },
   scanButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: '#fff',
     fontSize: 18,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 30,
+    left: 15,
+    backgroundColor: '#00CCFF',
+    padding: 10,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    padding: 20,
+    backgroundColor: '#f7f7f7',
+    elevation: 10,
   },
   modalContent: {
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
   modalText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  bottomNav: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#ddd',
-    height: 60,
-    zIndex: 10,
-  },
-  elevated: {
-    elevation: 5, // Sombra para simular elevación
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    fontSize: 16,
+    marginBottom: 10,
   },
 });
 
