@@ -96,7 +96,7 @@ export const handleStoresHome = async () => {
           id: storeId,
           ...storeData,
           productos,
-          imageUrl, // Agregar la URL de la imagen al objeto retornado
+          imageUrl,
         };
       })
     );

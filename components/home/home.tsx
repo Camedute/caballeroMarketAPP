@@ -15,6 +15,7 @@ const Home = ({ navigation }: any) => {
     const fetchStores = async () => {
       try {
         const storesData = await handleStoresHome();
+        console.log(storesData);
         setStores(storesData);
       } catch (error) {
         console.error('Error fetching stores:', error);
@@ -93,7 +94,7 @@ const Home = ({ navigation }: any) => {
                     style={styles.storeImage}
                   />
                   <Text style={styles.storeName}>{item.nombreLocal}</Text>
-
+                  <Text style={styles.biography}>{item.biografia}</Text>
                   {/* Productos en scroll horizontal */}
                   
                   {/* Botón "Ver Local" */}
@@ -156,6 +157,7 @@ const styles = StyleSheet.create({
   storeCard: { backgroundColor: '#fff', borderRadius: 10, elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, padding: 15, marginBottom: 10 },
   storeImage: { width: 150, height: 150, borderRadius: 10, alignSelf: 'center', marginBottom: 10 },
   storeName: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
+  biography: { fontSize: 16, fontStyle: 'italic',fontWeight: 'normal', marginBottom: 20,  textAlign: 'center', lineHeight: 22, color: '#555'},
   productList: { marginTop: 10 },
   productCard: { marginRight: 15, backgroundColor: '#f5f5f5', padding: 10, borderRadius: 8, width: 150 },
   productName: { fontSize: 14, fontWeight: '500' },

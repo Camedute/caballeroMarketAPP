@@ -191,8 +191,8 @@ type CartProps = {
                               <Text style={styles.productText}>{product.nombreProducto}</Text>
                               <Text style={styles.productText}>Cantidad: {product.cantidad}</Text>
                               <Text style={styles.productText}>precio: ${product.precio}</Text>
-                              <Button title='Editar Cantidad'></Button>
-                              <Button title='borrar'></Button>
+                             {/* <Button title='Editar Cantidad'></Button>
+                              <Button title='borrar'></Button> */}
                             </View>
                           )}
                         />

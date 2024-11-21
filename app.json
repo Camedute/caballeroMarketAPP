@@ -4,10 +4,10 @@
     "slug": "caballeroMarketAPP",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/iconCaballeroMarket.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/iconCaballeroMarket.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

@@ -148,7 +148,7 @@ const User = ({ navigation }: any) => {
                     <Text style={styles.text}>{formData.correoUsuario}</Text>
                   )}
                 </View>
-
+                  {/*
                 <View style={styles.profileField}>
                   <Text style={styles.label}>Descripción:</Text>
                   {isEditing ? (
@@ -161,7 +161,7 @@ const User = ({ navigation }: any) => {
                     <Text style={styles.text}>{formData.descripcion}</Text>
                   )}
                 </View>
-
+                    */}
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={handleEditClick}
